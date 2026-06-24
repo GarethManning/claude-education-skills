@@ -9,5 +9,26 @@
   },
   "homepage": "https://github.com/GarethManning/education-agent-skills",
   "license": "CC BY-SA 4.0",
-  "skills": "./skills/"
+  "skills": [
+    "./skills/ai-learning-science/",
+    "./skills/ai-literacy/",
+    "./skills/curriculum-alignment/",
+    "./skills/curriculum-assessment/",
+    "./skills/eal-language-development/",
+    "./skills/environmental-experiential-learning/",
+    "./skills/explicit-instruction/",
+    "./skills/global-cross-cultural-pedagogies/",
+    "./skills/historical-thinking/",
+    "./skills/inclusive-design/",
+    "./skills/literacy-critical-thinking/",
+    "./skills/memory-learning-science/",
+    "./skills/montessori-alternative-approaches/",
+    "./skills/original-frameworks/",
+    "./skills/professional-learning/",
+    "./skills/questioning-discussion/",
+    "./skills/self-regulated-learning/",
+    "./skills/student-learning/",
+    "./skills/systems-thinking/",
+    "./skills/wellbeing-motivation-agency/"
+  ]
 }

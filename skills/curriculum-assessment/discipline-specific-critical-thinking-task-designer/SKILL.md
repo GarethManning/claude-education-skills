@@ -1,6 +1,6 @@
 ---
 # AGENT SKILLS STANDARD FIELDS (v2)
-name: critical-thinking-task-designer
+name: discipline-specific-critical-thinking-task-designer
 description: "Design discipline-specific critical thinking tasks grounded in knowledge-contingent reasoning rather than generic skills. Use when embedding higher-order thinking into subject content."
 disable-model-invocation: false
 user-invocable: true
@@ -8,8 +8,8 @@ effort: medium
 
 # EXISTING FIELDS
 
-skill_id: "curriculum-assessment/critical-thinking-task-designer"
-skill_name: "Critical Thinking Task Designer"
+skill_id: "curriculum-assessment/discipline-specific-critical-thinking-task-designer"
+skill_name: "Discipline-Specific Critical Thinking Task Designer"
 domain: "curriculum-assessment"
 version: "1.0"
 evidence_strength: "strong"

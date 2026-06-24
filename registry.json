@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "generated": "2026-05-27T14:54:56.907578+00:00",
+  "generated": "2026-06-24T13:13:59.583719+00:00",
   "standard": "agent-skills-1.0",
   "total_skills": 165,
   "domains": [
@@ -1052,41 +1052,6 @@
       "path": "skills/curriculum-assessment/criterion-referenced-rubric-generator/SKILL.md"
     },
     {
-      "id": "curriculum-assessment/critical-thinking-task-designer",
-      "name": "critical-thinking-task-designer",
-      "display_name": "Critical Thinking Task Designer",
-      "domain": "curriculum-assessment",
-      "description": "Design discipline-specific critical thinking tasks grounded in knowledge-contingent reasoning rather than generic skills. Use when embedding higher-order thinking into subject content.",
-      "disable_model_invocation": false,
-      "evidence_strength": "strong",
-      "tags": [
-        "critical-thinking",
-        "disciplinary-thinking",
-        "horizontal-knowledge",
-        "knowledge-contingent",
-        "task-design",
-        "intellectual-resources",
-        "Bailin",
-        "Willingham",
-        "domain-specific"
-      ],
-      "teacher_time": "10 minutes",
-      "chains_with": [
-        "curriculum-knowledge-architecture-designer",
-        "kud-knowledge-type-mapper",
-        "coherent-rubric-logic-builder",
-        "learning-target-authoring-guide",
-        "ai-output-critical-audit-designer"
-      ],
-      "chain_edges": {
-        "receives_from": [],
-        "feeds_into": [],
-        "output_field": null,
-        "input_field": null
-      },
-      "path": "skills/curriculum-assessment/critical-thinking-task-designer/SKILL.md"
-    },
-    {
       "id": "curriculum-assessment/curriculum-knowledge-architecture-designer",
       "name": "curriculum-knowledge-architecture-designer",
       "display_name": "Curriculum Knowledge Architecture Designer",
@@ -1149,6 +1114,41 @@
         "input_field": null
       },
       "path": "skills/curriculum-assessment/differentiation-adapter/SKILL.md"
+    },
+    {
+      "id": "curriculum-assessment/discipline-specific-critical-thinking-task-designer",
+      "name": "discipline-specific-critical-thinking-task-designer",
+      "display_name": "Discipline-Specific Critical Thinking Task Designer",
+      "domain": "curriculum-assessment",
+      "description": "Design discipline-specific critical thinking tasks grounded in knowledge-contingent reasoning rather than generic skills. Use when embedding higher-order thinking into subject content.",
+      "disable_model_invocation": false,
+      "evidence_strength": "strong",
+      "tags": [
+        "critical-thinking",
+        "disciplinary-thinking",
+        "horizontal-knowledge",
+        "knowledge-contingent",
+        "task-design",
+        "intellectual-resources",
+        "Bailin",
+        "Willingham",
+        "domain-specific"
+      ],
+      "teacher_time": "10 minutes",
+      "chains_with": [
+        "curriculum-knowledge-architecture-designer",
+        "kud-knowledge-type-mapper",
+        "coherent-rubric-logic-builder",
+        "learning-target-authoring-guide",
+        "ai-output-critical-audit-designer"
+      ],
+      "chain_edges": {
+        "receives_from": [],
+        "feeds_into": [],
+        "output_field": null,
+        "input_field": null
+      },
+      "path": "skills/curriculum-assessment/discipline-specific-critical-thinking-task-designer/SKILL.md"
     },
     {
       "id": "curriculum-assessment/formative-assessment-technique-selector",

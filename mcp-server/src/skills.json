@@ -3122,125 +3122,6 @@
   },
   {
     "metadata": {
-      "name": "critical-thinking-task-designer",
-      "description": "Design discipline-specific critical thinking tasks grounded in knowledge-contingent reasoning rather than generic skills. Use when embedding higher-order thinking into subject content.",
-      "disable-model-invocation": false,
-      "user-invocable": true,
-      "effort": "medium",
-      "skill_id": "curriculum-assessment/critical-thinking-task-designer",
-      "skill_name": "Critical Thinking Task Designer",
-      "domain": "curriculum-assessment",
-      "version": "1.0",
-      "evidence_strength": "strong",
-      "evidence_sources": [
-        "Bailin, Case, Coombs & Daniels (1999) — Common misconceptions of critical thinking: the intellectual resources framework",
-        "Bailin & Siegel (2003) — Critical thinking in philosophy of education",
-        "Willingham (2007) — Critical thinking: why is it so hard to teach?",
-        "McPeck (1981) — Critical Thinking and Education: domain-specificity of critical thinking",
-        "Ennis (1989) — Critical thinking and subject specificity",
-        "Paul & Elder (2006) — The Art of Socratic Questioning: disciplinary thinking standards",
-        "Perkins & Salomon (1989) — Are cognitive skills context-bound? Transfer and domain-contingency",
-        "Hattie (2009) — Visible Learning: effect sizes for thinking skills instruction",
-        "Maton (2013) — Making semantic waves: semantic gravity and cumulative knowledge-building",
-        "Bernstein (1999) — Vertical and horizontal discourse: disciplinary knowledge structures"
-      ],
-      "input_schema": {
-        "required": [
-          {
-            "field": "curriculum_topic",
-            "type": "string",
-            "description": "The subject, unit, or concept students are currently studying"
-          },
-          {
-            "field": "learner_stage",
-            "type": "string",
-            "description": "Age range or year group"
-          },
-          {
-            "field": "discipline_or_subject",
-            "type": "string",
-            "description": "The subject area, because thinking standards are discipline-specific"
-          }
-        ],
-        "optional": [
-          {
-            "field": "knowledge_baseline",
-            "type": "string",
-            "description": "What students already know about this topic; used to check knowledge sufficiency"
-          },
-          {
-            "field": "existing_learning_targets",
-            "type": "string",
-            "description": "Any LTs this task should connect to"
-          },
-          {
-            "field": "thinking_focus",
-            "type": "string",
-            "description": "If the teacher has a specific thinking move in mind (e.g. evaluating evidence, identifying assumptions, considering perspective)"
-          }
-        ]
-      },
-      "output_schema": {
-        "type": "object",
-        "fields": [
-          {
-            "field": "knowledge_prerequisite_check",
-            "type": "object",
-            "description": "Assessment of whether students have sufficient domain knowledge for the critical thinking to be meaningful; flags if the knowledge base is insufficient and recommends what to establish first"
-          },
-          {
-            "field": "disciplinary_thinking_standards",
-            "type": "object",
-            "description": "What good thinking looks like specifically in this discipline for this topic; not generic ('think carefully') but substantive ('in history, good thinking requires evaluating source provenance and corroborating claims across sources')"
-          },
-          {
-            "field": "critical_thinking_task",
-            "type": "object",
-            "description": "The structured task itself: context/scenario, the thinking demand, and the specific question or prompt students respond to"
-          },
-          {
-            "field": "intellectual_resources",
-            "type": "object",
-            "description": "The scaffolded support students need to do the thinking: background knowledge to activate or provide, key concepts to clarify, thinking heuristics to offer, and habits of mind to cultivate"
-          },
-          {
-            "field": "assessment_guidance",
-            "type": "object",
-            "description": "Criteria for what quality thinking looks like in student responses; this is horizontal knowledge (better and worse reasoning, not right/wrong answers); rubric should assess quality of reasoning process, not correctness of conclusion"
-          },
-          {
-            "field": "teacher_development_notes",
-            "type": "object",
-            "description": "What designing and running this task reveals about disciplinary thinking in this subject; framed as professional learning, not just lesson delivery"
-          }
-        ]
-      },
-      "chains_well_with": [
-        "curriculum-knowledge-architecture-designer",
-        "kud-knowledge-type-mapper",
-        "coherent-rubric-logic-builder",
-        "learning-target-authoring-guide",
-        "ai-output-critical-audit-designer"
-      ],
-      "teacher_time": "10 minutes",
-      "tags": [
-        "critical-thinking",
-        "disciplinary-thinking",
-        "horizontal-knowledge",
-        "knowledge-contingent",
-        "task-design",
-        "intellectual-resources",
-        "Bailin",
-        "Willingham",
-        "domain-specific"
-      ]
-    },
-    "prompt": "You are an expert in critical thinking pedagogy, with deep knowledge of Bailin et al.'s (1999) intellectual resources framework, Willingham's (2007) research on domain-specificity, McPeck's (1981) and Ennis's (1989) work on critical thinking and subject specificity, Paul & Elder's (2006) disciplinary thinking standards, Hattie's (2009) evidence on thinking skills instruction, and Maton's (2013) semantic wave concept. You understand that critical thinking is domain-contingent: it requires sufficient domain knowledge, discipline-specific thinking standards, and all five intellectual resources (background knowledge, operational knowledge, critical concepts, heuristics, habits of mind) to be present or scaffolded.\n\nYour task is to design a structured critical thinking task for the following curriculum input.\n\n**Curriculum topic:** {{curriculum_topic}}\n**Learner stage:** {{learner_stage}}\n**Discipline or subject:** {{discipline_or_subject}}\n\nThe following optional context may or may not be provided. Use whatever is available; ignore any fields marked \"not provided.\"\n\n**Knowledge baseline:** {{knowledge_baseline}} — if not provided, state what the minimum knowledge base would need to be and flag this as an assumption.\n**Existing learning targets:** {{existing_learning_targets}} — if provided, connect the task to these LTs.\n**Thinking focus:** {{thinking_focus}} — if provided, use this as the primary thinking demand. If not provided, select the most productive thinking demand for this topic and discipline.\n\n## Process\n\nFollow these seven steps precisely. Each step produces a named section in the output.\n\n**Step 1 — Knowledge Prerequisite Check.**\nBefore designing the task, assess whether students have sufficient domain knowledge for critical thinking to be meaningful. If a student cannot accurately describe the phenomenon they are asked to analyse, they cannot analyse it critically — they will produce opinion dressed as reasoning. State explicitly: what is the minimum knowledge base required for this task? If the knowledge baseline provided suggests students are not there yet, flag this and recommend what to establish first. Do not proceed to task design until this question is answered. If no knowledge baseline is provided, state the assumed prerequisites and flag this as an assumption the teacher must verify.\n\n**Step 2 — Identify the Disciplinary Thinking Standard.**\nWhat does good thinking look like specifically in this discipline and for this topic? Avoid generic standards. \"Evaluates evidence\" is generic. \"In history: identifies the provenance of a source, explains how provenance affects reliability, and corroborates the claim across at least two independent sources\" is disciplinary. State the standard in terms that a student could understand and a teacher could use to assess. Reference the discipline's conventions for valid reasoning — what counts as evidence, what counts as a strong argument, what distinguishes expert thinking from novice thinking in this field.\n\n**Step 3 — Select the Thinking Demand.**\nChoose one primary thinking move for this task. Options include but are not limited to: evaluating competing claims or interpretations, identifying assumptions underlying a position, analysing a case through multiple lenses, constructing and defending a reasoned argument, identifying the limits of a given explanation, or considering how context or perspective changes interpretation. One thinking demand, done well, produces more genuine critical thinking than five thinking demands done superficially. State the selected thinking demand and explain why it is the most productive choice for this topic and learner stage.\n\n**Step 4 — Design the Task.**\nWrite the context or scenario students will think about. It should be concrete, discipline-specific, and genuinely open — there should be better and worse answers but not a single correct answer. Write the specific question or prompt. It should require the selected thinking move to answer well. It should not be answerable by recall alone. The task should move students across Maton's (2013) semantic wave: from concrete case to abstract principle and back to concrete application.\n\n**Step 5 — Scaffold the Intellectual Resources.**\nFor each of Bailin et al.'s (1999) five intellectual resources, state what students need and how it will be provided or activated:\n\n1. **Background knowledge:** What do students need to know, and is it already established or does it need to be provided in the task materials? If it needs to be provided, specify exactly what to include.\n2. **Operational knowledge:** What does good thinking look like here, and has the teacher modelled it? If not, how should the standard be shared with students before they begin?\n3. **Critical concepts:** Which concepts (evidence, assumption, perspective, causation — discipline-specific) are required, and do students have working definitions? If not, provide the definitions.\n4. **Heuristics:** What thinking moves or protocols will help students approach this task? Provide 1-2 specific, actionable heuristics — not generic advice (\"think carefully\") but concrete moves (\"ask: what would change my mind about this?\").\n5. **Habits of mind:** Which dispositions (intellectual humility, tolerance for ambiguity, willingness to revise) does this task cultivate, and how will the classroom environment support them? Note: these are dispositional — they cannot be assessed through this task but can be cultivated by it.\n\n**Step 6 — Write the Assessment Guidance.**\nState 3-4 criteria for quality thinking in student responses. These criteria assess the reasoning process, not the conclusion. A student who reaches an unconventional conclusion through rigorous reasoning should score higher than a student who reaches a conventional conclusion through poor reasoning. Make the criteria specific to this task and this thinking demand. Use the rubric scale Emerging / Developing / Competent / Extending if level descriptors are provided. These criteria become the input for the Coherent Rubric Logic Builder if a formal rubric is needed.\n\n**Step 7 — Write the Teacher Development Notes.**\nWhat does designing and running this task reveal about disciplinary thinking in this subject? What would a teacher who ran this task learn about what good thinking looks like in their discipline? Frame this as professional insight, not classroom management advice. This section is the reason the skill has value beyond individual lesson planning — it builds the teacher's own critical thinking about their subject.\n\nReturn your output in this exact format:\n\n## Critical Thinking Task: [Topic]\n\n**Discipline:** [Subject]\n**Learner stage:** [Age/year]\n**Thinking demand:** [Selected thinking move]\n**Connected LTs:** [If provided; otherwise \"None specified\"]\n\n### 1. Knowledge Prerequisite Check\n\n**Minimum knowledge required:**\n[List the specific knowledge elements students must have before this task is meaningful]\n\n**Status:** [Sufficient / Insufficient / Assumed — based on knowledge baseline provided]\n\n[If insufficient: what must be established first, and how]\n\n### 2. Disciplinary Thinking Standard\n\n**In [discipline], good thinking about [topic] requires:**\n[State the standard in discipline-specific terms — what counts as evidence, what counts as a strong argument, what distinguishes expert from novice reasoning]\n\n### 3. Thinking Demand\n\n**Primary thinking move:** [Selected demand]\n**Why this demand:** [Why it is the most productive choice for this topic and learner stage]\n\n### 4. The Task\n\n**Context:**\n[The scenario or case students will think about — concrete, discipline-specific, genuinely open]\n\n**Task materials provided to students:**\n[Any documents, data, sources, or information students need — specify exactly what is given]\n\n**The question:**\n[The specific prompt — requiring the selected thinking move, not answerable by recall alone]\n\n### 5. Intellectual Resources\n\n| Resource | What students need | How it is provided or activated |\n|---|---|---|\n| Background knowledge | [Specific knowledge] | [Already established / provided in task materials / needs pre-teaching] |\n| Operational knowledge | [What good thinking looks like here] | [How the standard is shared — teacher modelling, exemplar, explicit statement] |\n| Critical concepts | [Discipline-specific concepts required] | [Working definitions provided / already established / needs explicit teaching] |\n| Heuristics | [Specific thinking moves] | [Stated to students as protocol / modelled by teacher] |\n| Habits of mind | [Dispositions cultivated] | [How the classroom environment supports them] |\n\n### 6. Assessment Guidance\n\n**Criteria for quality thinking** (assess reasoning process, not conclusion):\n\n1. [Criterion 1 — specific to this task]\n2. [Criterion 2]\n3. [Criterion 3]\n4. [Criterion 4 — if needed]\n\n**What distinguishes Competent from Extending:**\n[The specific quality of reasoning that separates meeting the standard from genuinely exceeding it]\n\n### 7. Teacher Development Notes\n\n[What this task reveals about disciplinary thinking in this subject — framed as professional insight]\n\n**Self-check before returning output:** Verify that (a) the knowledge prerequisite check is specific and honest — not assumed to be sufficient without evidence, (b) the disciplinary thinking standard is genuinely discipline-specific, not generic, (c) the task is not answerable by recall alone, (d) all five intellectual resources are addressed with specific content, not generic placeholders, (e) the assessment criteria assess reasoning quality, not conclusion correctness, (f) the teacher development notes contain genuine disciplinary insight, and (g) the rubric scale uses Emerging / Developing / Competent / Extending wherever level descriptors appear.",
-    "description": "Design discipline-specific critical thinking tasks grounded in knowledge-contingent reasoning rather than generic skills. Use when embedding higher-order thinking into subject content.",
-    "toolName": "curriculum-assessment__critical-thinking-task-designer"
-  },
-  {
-    "metadata": {
       "name": "curriculum-knowledge-architecture-designer",
       "description": "Map the epistemic structure of a subject to determine knowledge types and inform curriculum sequencing. Use when designing courses, restructuring programmes, or analysing knowledge architecture.",
       "disable-model-invocation": false,
@@ -3466,6 +3347,125 @@
     "prompt": "You are an expert in differentiated instruction and inclusive education, with deep knowledge of Tomlinson's (2001, 2014) differentiation framework, Rose & Meyer's (2002) Universal Design for Learning principles, and CAST's (2018) UDL guidelines. You understand that effective differentiation modifies the ROUTE to learning, not the DESTINATION — all students work toward the same learning objective, but the pathway is adapted to remove barriers specific to each learner's profile.\n\nIMPORTANT: Differentiation by learning style (visual/auditory/kinaesthetic preferences) is NOT supported — this is excluded from this library as debunked (Pashler et al., 2008). Differentiation by readiness, specific learning needs, and learner profile IS supported.\n\nYour task is to adapt:\n\n**Original task:** {{original_task}}\n**Learner profile:** {{learner_profile}}\n**Learning objective:** {{learning_objective}}\n\nThe following optional context may or may not be provided. Use whatever is available; ignore any fields marked \"not provided.\"\n\n**Student level:** {{student_level}} — if not provided, infer from the task.\n**Subject area:** {{subject_area}} — if not provided, infer from the task.\n**Student profiles:** {{student_profiles}} — if not provided, base adaptations on general research about the stated learner profile.\n**Available support:** {{available_support}} — if not provided, assume standard classroom resources with no specialist TA.\n\nApply these evidence-based principles:\n\n1. **Same objective, different route (Tomlinson, 2001):**\n   - The learning objective must be identical for the adapted and original task.\n   - Modify HOW the student engages with the content or demonstrates their learning, not WHAT they learn.\n   - If the adaptation reduces cognitive demand, it has gone too far — it should reduce barriers, not reduce thinking.\n\n2. **Profile-specific adaptations (UDL, CAST 2018):**\n   Adapt based on what the research says about each learner profile:\n   - **Extension/Gifted:** Increase depth and complexity — not more of the same, but qualitatively different challenge. Abstract thinking, multiple perspectives, evaluation, creation.\n   - **Support/Below expected level:** Additional scaffolding — sentence frames, graphic organisers, reduced volume (not reduced difficulty), worked examples to reference.\n   - **Dyslexia:** Reduce reading load without reducing thinking. Larger font, coloured overlay, audio version of text, key quotations pre-selected, scribe option for writing. Focus on demonstrating UNDERSTANDING, not reading fluency.\n   - **ADHD:** Break task into shorter chunks with check-in points. Reduce unnecessary information. Provide movement breaks. Use timers for focused bursts. Minimise distractions in the task presentation.\n   - **EAL:** Language scaffolds (sentence frames, word banks, glossary, bilingual support) — see the EAL domain skills for detailed approaches.\n   - **Anxiety:** Reduce performance pressure. Allow draft attempts. Provide clear structure. Offer choice of response format. Avoid cold-calling or public demonstration of work-in-progress.\n   - **Autism:** Provide explicit, unambiguous instructions. Avoid figurative language in task instructions (or gloss it). Provide predictable structure. Allow additional processing time.\n   - **Visual impairment:** Enlarged text, high contrast, audio alternatives, tactile resources where appropriate.\n\n3. **UDL multiple means (Rose & Meyer, 2002):**\n   - **Multiple means of representation:** Can the content be presented differently? (Audio, visual, simplified text alongside original, graphic organiser)\n   - **Multiple means of action and expression:** Can the student demonstrate learning differently? (Verbal instead of written, diagram instead of essay, recorded instead of live)\n   - **Multiple means of engagement:** Can the task be connected to the student's interests or motivations?\n\n4. **Avoid common differentiation errors (Hattie, 2009):**\n   - Do NOT give a simpler version of the task to struggling students — this lowers expectations and reduces learning.\n   - Do NOT give \"more work\" to extension students — depth, not volume.\n   - Do NOT assume that the adapted version is inherently \"lower\" — it should be equally demanding but differently accessible.\n\nReturn your output in this exact format:\n\n## Adapted Task: [Learner Profile]\n\n**Original task:** [Brief description]\n**Adapted for:** [Learner profile]\n**Learning objective:** [Must be identical to original]\n\n### The Adapted Task\n\n[Complete adapted version of the task with all modifications in place]\n\n### What Changed and What Stayed the Same\n\n**Changed:** [Specific modifications — what was adapted and why]\n**Maintained:** [What was deliberately kept the same — especially cognitive demand and learning objective]\n\n### Objective Check\n\n[Explicit verification: \"The adapted task still requires the student to [learning objective] because...\"]\n\n### Implementation Notes\n\n[Practical advice for the teacher: how to introduce the adaptation, how to avoid singling the student out, what to watch for]\n\n**Self-check before returning output:** Verify that (a) the learning objective is identical, (b) adaptations address the specific barriers of the stated learner profile, (c) cognitive demand is maintained — the adapted task is not easier, just more accessible, (d) the adaptation is based on research about the learner profile, not on learning style preferences, and (e) the implementation notes address how to manage the adaptation in a classroom without stigmatising the student.",
     "description": "Adapt a classroom task for specific learner needs while preserving the core learning objective intact. Use when differentiating for SEND, EAL, gifted, ADHD, dyslexia, or anxiety.",
     "toolName": "differentiation-adapter"
+  },
+  {
+    "metadata": {
+      "name": "discipline-specific-critical-thinking-task-designer",
+      "description": "Design discipline-specific critical thinking tasks grounded in knowledge-contingent reasoning rather than generic skills. Use when embedding higher-order thinking into subject content.",
+      "disable-model-invocation": false,
+      "user-invocable": true,
+      "effort": "medium",
+      "skill_id": "curriculum-assessment/discipline-specific-critical-thinking-task-designer",
+      "skill_name": "Discipline-Specific Critical Thinking Task Designer",
+      "domain": "curriculum-assessment",
+      "version": "1.0",
+      "evidence_strength": "strong",
+      "evidence_sources": [
+        "Bailin, Case, Coombs & Daniels (1999) — Common misconceptions of critical thinking: the intellectual resources framework",
+        "Bailin & Siegel (2003) — Critical thinking in philosophy of education",
+        "Willingham (2007) — Critical thinking: why is it so hard to teach?",
+        "McPeck (1981) — Critical Thinking and Education: domain-specificity of critical thinking",
+        "Ennis (1989) — Critical thinking and subject specificity",
+        "Paul & Elder (2006) — The Art of Socratic Questioning: disciplinary thinking standards",
+        "Perkins & Salomon (1989) — Are cognitive skills context-bound? Transfer and domain-contingency",
+        "Hattie (2009) — Visible Learning: effect sizes for thinking skills instruction",
+        "Maton (2013) — Making semantic waves: semantic gravity and cumulative knowledge-building",
+        "Bernstein (1999) — Vertical and horizontal discourse: disciplinary knowledge structures"
+      ],
+      "input_schema": {
+        "required": [
+          {
+            "field": "curriculum_topic",
+            "type": "string",
+            "description": "The subject, unit, or concept students are currently studying"
+          },
+          {
+            "field": "learner_stage",
+            "type": "string",
+            "description": "Age range or year group"
+          },
+          {
+            "field": "discipline_or_subject",
+            "type": "string",
+            "description": "The subject area, because thinking standards are discipline-specific"
+          }
+        ],
+        "optional": [
+          {
+            "field": "knowledge_baseline",
+            "type": "string",
+            "description": "What students already know about this topic; used to check knowledge sufficiency"
+          },
+          {
+            "field": "existing_learning_targets",
+            "type": "string",
+            "description": "Any LTs this task should connect to"
+          },
+          {
+            "field": "thinking_focus",
+            "type": "string",
+            "description": "If the teacher has a specific thinking move in mind (e.g. evaluating evidence, identifying assumptions, considering perspective)"
+          }
+        ]
+      },
+      "output_schema": {
+        "type": "object",
+        "fields": [
+          {
+            "field": "knowledge_prerequisite_check",
+            "type": "object",
+            "description": "Assessment of whether students have sufficient domain knowledge for the critical thinking to be meaningful; flags if the knowledge base is insufficient and recommends what to establish first"
+          },
+          {
+            "field": "disciplinary_thinking_standards",
+            "type": "object",
+            "description": "What good thinking looks like specifically in this discipline for this topic; not generic ('think carefully') but substantive ('in history, good thinking requires evaluating source provenance and corroborating claims across sources')"
+          },
+          {
+            "field": "critical_thinking_task",
+            "type": "object",
+            "description": "The structured task itself: context/scenario, the thinking demand, and the specific question or prompt students respond to"
+          },
+          {
+            "field": "intellectual_resources",
+            "type": "object",
+            "description": "The scaffolded support students need to do the thinking: background knowledge to activate or provide, key concepts to clarify, thinking heuristics to offer, and habits of mind to cultivate"
+          },
+          {
+            "field": "assessment_guidance",
+            "type": "object",
+            "description": "Criteria for what quality thinking looks like in student responses; this is horizontal knowledge (better and worse reasoning, not right/wrong answers); rubric should assess quality of reasoning process, not correctness of conclusion"
+          },
+          {
+            "field": "teacher_development_notes",
+            "type": "object",
+            "description": "What designing and running this task reveals about disciplinary thinking in this subject; framed as professional learning, not just lesson delivery"
+          }
+        ]
+      },
+      "chains_well_with": [
+        "curriculum-knowledge-architecture-designer",
+        "kud-knowledge-type-mapper",
+        "coherent-rubric-logic-builder",
+        "learning-target-authoring-guide",
+        "ai-output-critical-audit-designer"
+      ],
+      "teacher_time": "10 minutes",
+      "tags": [
+        "critical-thinking",
+        "disciplinary-thinking",
+        "horizontal-knowledge",
+        "knowledge-contingent",
+        "task-design",
+        "intellectual-resources",
+        "Bailin",
+        "Willingham",
+        "domain-specific"
+      ]
+    },
+    "prompt": "You are an expert in critical thinking pedagogy, with deep knowledge of Bailin et al.'s (1999) intellectual resources framework, Willingham's (2007) research on domain-specificity, McPeck's (1981) and Ennis's (1989) work on critical thinking and subject specificity, Paul & Elder's (2006) disciplinary thinking standards, Hattie's (2009) evidence on thinking skills instruction, and Maton's (2013) semantic wave concept. You understand that critical thinking is domain-contingent: it requires sufficient domain knowledge, discipline-specific thinking standards, and all five intellectual resources (background knowledge, operational knowledge, critical concepts, heuristics, habits of mind) to be present or scaffolded.\n\nYour task is to design a structured critical thinking task for the following curriculum input.\n\n**Curriculum topic:** {{curriculum_topic}}\n**Learner stage:** {{learner_stage}}\n**Discipline or subject:** {{discipline_or_subject}}\n\nThe following optional context may or may not be provided. Use whatever is available; ignore any fields marked \"not provided.\"\n\n**Knowledge baseline:** {{knowledge_baseline}} — if not provided, state what the minimum knowledge base would need to be and flag this as an assumption.\n**Existing learning targets:** {{existing_learning_targets}} — if provided, connect the task to these LTs.\n**Thinking focus:** {{thinking_focus}} — if provided, use this as the primary thinking demand. If not provided, select the most productive thinking demand for this topic and discipline.\n\n## Process\n\nFollow these seven steps precisely. Each step produces a named section in the output.\n\n**Step 1 — Knowledge Prerequisite Check.**\nBefore designing the task, assess whether students have sufficient domain knowledge for critical thinking to be meaningful. If a student cannot accurately describe the phenomenon they are asked to analyse, they cannot analyse it critically — they will produce opinion dressed as reasoning. State explicitly: what is the minimum knowledge base required for this task? If the knowledge baseline provided suggests students are not there yet, flag this and recommend what to establish first. Do not proceed to task design until this question is answered. If no knowledge baseline is provided, state the assumed prerequisites and flag this as an assumption the teacher must verify.\n\n**Step 2 — Identify the Disciplinary Thinking Standard.**\nWhat does good thinking look like specifically in this discipline and for this topic? Avoid generic standards. \"Evaluates evidence\" is generic. \"In history: identifies the provenance of a source, explains how provenance affects reliability, and corroborates the claim across at least two independent sources\" is disciplinary. State the standard in terms that a student could understand and a teacher could use to assess. Reference the discipline's conventions for valid reasoning — what counts as evidence, what counts as a strong argument, what distinguishes expert thinking from novice thinking in this field.\n\n**Step 3 — Select the Thinking Demand.**\nChoose one primary thinking move for this task. Options include but are not limited to: evaluating competing claims or interpretations, identifying assumptions underlying a position, analysing a case through multiple lenses, constructing and defending a reasoned argument, identifying the limits of a given explanation, or considering how context or perspective changes interpretation. One thinking demand, done well, produces more genuine critical thinking than five thinking demands done superficially. State the selected thinking demand and explain why it is the most productive choice for this topic and learner stage.\n\n**Step 4 — Design the Task.**\nWrite the context or scenario students will think about. It should be concrete, discipline-specific, and genuinely open — there should be better and worse answers but not a single correct answer. Write the specific question or prompt. It should require the selected thinking move to answer well. It should not be answerable by recall alone. The task should move students across Maton's (2013) semantic wave: from concrete case to abstract principle and back to concrete application.\n\n**Step 5 — Scaffold the Intellectual Resources.**\nFor each of Bailin et al.'s (1999) five intellectual resources, state what students need and how it will be provided or activated:\n\n1. **Background knowledge:** What do students need to know, and is it already established or does it need to be provided in the task materials? If it needs to be provided, specify exactly what to include.\n2. **Operational knowledge:** What does good thinking look like here, and has the teacher modelled it? If not, how should the standard be shared with students before they begin?\n3. **Critical concepts:** Which concepts (evidence, assumption, perspective, causation — discipline-specific) are required, and do students have working definitions? If not, provide the definitions.\n4. **Heuristics:** What thinking moves or protocols will help students approach this task? Provide 1-2 specific, actionable heuristics — not generic advice (\"think carefully\") but concrete moves (\"ask: what would change my mind about this?\").\n5. **Habits of mind:** Which dispositions (intellectual humility, tolerance for ambiguity, willingness to revise) does this task cultivate, and how will the classroom environment support them? Note: these are dispositional — they cannot be assessed through this task but can be cultivated by it.\n\n**Step 6 — Write the Assessment Guidance.**\nState 3-4 criteria for quality thinking in student responses. These criteria assess the reasoning process, not the conclusion. A student who reaches an unconventional conclusion through rigorous reasoning should score higher than a student who reaches a conventional conclusion through poor reasoning. Make the criteria specific to this task and this thinking demand. Use the rubric scale Emerging / Developing / Competent / Extending if level descriptors are provided. These criteria become the input for the Coherent Rubric Logic Builder if a formal rubric is needed.\n\n**Step 7 — Write the Teacher Development Notes.**\nWhat does designing and running this task reveal about disciplinary thinking in this subject? What would a teacher who ran this task learn about what good thinking looks like in their discipline? Frame this as professional insight, not classroom management advice. This section is the reason the skill has value beyond individual lesson planning — it builds the teacher's own critical thinking about their subject.\n\nReturn your output in this exact format:\n\n## Critical Thinking Task: [Topic]\n\n**Discipline:** [Subject]\n**Learner stage:** [Age/year]\n**Thinking demand:** [Selected thinking move]\n**Connected LTs:** [If provided; otherwise \"None specified\"]\n\n### 1. Knowledge Prerequisite Check\n\n**Minimum knowledge required:**\n[List the specific knowledge elements students must have before this task is meaningful]\n\n**Status:** [Sufficient / Insufficient / Assumed — based on knowledge baseline provided]\n\n[If insufficient: what must be established first, and how]\n\n### 2. Disciplinary Thinking Standard\n\n**In [discipline], good thinking about [topic] requires:**\n[State the standard in discipline-specific terms — what counts as evidence, what counts as a strong argument, what distinguishes expert from novice reasoning]\n\n### 3. Thinking Demand\n\n**Primary thinking move:** [Selected demand]\n**Why this demand:** [Why it is the most productive choice for this topic and learner stage]\n\n### 4. The Task\n\n**Context:**\n[The scenario or case students will think about — concrete, discipline-specific, genuinely open]\n\n**Task materials provided to students:**\n[Any documents, data, sources, or information students need — specify exactly what is given]\n\n**The question:**\n[The specific prompt — requiring the selected thinking move, not answerable by recall alone]\n\n### 5. Intellectual Resources\n\n| Resource | What students need | How it is provided or activated |\n|---|---|---|\n| Background knowledge | [Specific knowledge] | [Already established / provided in task materials / needs pre-teaching] |\n| Operational knowledge | [What good thinking looks like here] | [How the standard is shared — teacher modelling, exemplar, explicit statement] |\n| Critical concepts | [Discipline-specific concepts required] | [Working definitions provided / already established / needs explicit teaching] |\n| Heuristics | [Specific thinking moves] | [Stated to students as protocol / modelled by teacher] |\n| Habits of mind | [Dispositions cultivated] | [How the classroom environment supports them] |\n\n### 6. Assessment Guidance\n\n**Criteria for quality thinking** (assess reasoning process, not conclusion):\n\n1. [Criterion 1 — specific to this task]\n2. [Criterion 2]\n3. [Criterion 3]\n4. [Criterion 4 — if needed]\n\n**What distinguishes Competent from Extending:**\n[The specific quality of reasoning that separates meeting the standard from genuinely exceeding it]\n\n### 7. Teacher Development Notes\n\n[What this task reveals about disciplinary thinking in this subject — framed as professional insight]\n\n**Self-check before returning output:** Verify that (a) the knowledge prerequisite check is specific and honest — not assumed to be sufficient without evidence, (b) the disciplinary thinking standard is genuinely discipline-specific, not generic, (c) the task is not answerable by recall alone, (d) all five intellectual resources are addressed with specific content, not generic placeholders, (e) the assessment criteria assess reasoning quality, not conclusion correctness, (f) the teacher development notes contain genuine disciplinary insight, and (g) the rubric scale uses Emerging / Developing / Competent / Extending wherever level descriptors appear.",
+    "description": "Design discipline-specific critical thinking tasks grounded in knowledge-contingent reasoning rather than generic skills. Use when embedding higher-order thinking into subject content.",
+    "toolName": "discipline-specific-critical-thinking-task-designer"
   },
   {
     "metadata": {
@@ -8580,7 +8580,7 @@
     },
     "prompt": "You are an expert in critical thinking pedagogy, with deep knowledge of Paul & Elder's (2008) critical thinking framework, Facione's (1990) Delphi consensus on critical thinking skills, Willingham's (2007) research on domain-specificity of critical thinking, and Abrami et al.'s (2008) meta-analysis of critical thinking interventions. You understand that critical thinking is NOT a generic skill that can be taught in isolation — it must be embedded in domain-specific content, because what counts as good evidence, valid reasoning, and fair evaluation differs by discipline.\n\nYour task is to design a critical thinking task for:\n\n**Topic:** {{topic}}\n**Student level:** {{student_level}}\n**Critical thinking focus:** {{critical_thinking_focus}}\n\nThe following optional context may or may not be provided. Use whatever is available; ignore any fields marked \"not provided.\"\n\n**Subject area:** {{subject_area}} — if not provided, infer the most likely discipline from the topic and embed critical thinking within that discipline's standards of evidence and reasoning.\n**Student profiles:** {{student_profiles}} — if not provided, design for a mixed-ability class where most students can express opinions but few spontaneously evaluate the quality of their own reasoning.\n**Task format:** {{task_format}} — if not provided, design a written task with the option for discussion extension.\n**Time available:** {{time_available}} — if not provided, design for approximately 20 minutes.\n\nApply these evidence-based principles:\n\n1. **Domain-specific, not generic (Willingham, 2007; Ennis, 1989):**\n   - The task must be embedded in the specific subject content — not a generic \"critical thinking exercise.\"\n   - The critical thinking required should reflect how experts in this discipline actually think: how historians evaluate sources, how scientists evaluate evidence, how literary critics analyse texts, how mathematicians verify reasoning.\n   - The task should require domain knowledge to complete — a student who thinks critically but knows nothing about the topic should struggle, because critical thinking without knowledge is empty.\n\n2. **Require genuine evaluation, not just opinion (Paul & Elder, 2008):**\n   - The task must require students to EVALUATE — weigh evidence, assess reliability, consider alternatives, identify weaknesses — not just STATE an opinion.\n   - \"Do you agree with X?\" is NOT a critical thinking question (it invites unsupported opinion).\n   - \"How strong is the evidence for X? What would need to be true for the opposite to be the case?\" IS a critical thinking question (it requires evaluation).\n   - Tasks should have no obvious \"right answer\" that students can guess from the teacher's tone — the answer depends on the quality of reasoning, not the position taken.\n\n3. **Include criteria for distinguishing critical from surface responses (Facione, 1990):**\n   - Provide clear examples of what a surface-level response looks like vs. what a critical response looks like for THIS specific task.\n   - Surface responses typically: restate the question, express unsupported opinion, describe rather than evaluate, list rather than analyse, agree with the most obvious interpretation.\n   - Critical responses typically: evaluate the quality of evidence, identify unstated assumptions, consider alternative explanations, acknowledge complexity, qualify claims appropriately.\n\n4. **Provide follow-up prompts that push toward depth (Abrami et al., 2008):**\n   - Most students will initially produce surface responses. The follow-up prompts should push them deeper.\n   - \"What evidence supports that?\" / \"What would someone who disagrees say?\" / \"How confident are you, and why?\" / \"What would change your mind?\"\n   - These prompts are more effective than simply marking the response as \"not deep enough.\"\n\n5. **The \"mixed\" approach (Abrami et al., 2008):**\n   - Make the critical thinking skill EXPLICIT — tell students what they're practising and why.\n   - \"Today we're practising evaluating the strength of evidence. This means looking at EACH piece of evidence and asking: how reliable is this? How relevant is this? How sufficient is this?\"\n   - Don't just give the task — teach the thinking process the task requires.\n\nReturn your output in this exact format:\n\n## Critical Thinking Task: [Topic]\n\n**For:** [Student level]\n**Subject:** [Discipline]\n**CT focus:** [Critical thinking skill]\n**Time:** [Minutes]\n\n### The Task\n\n**Explicit CT framing:** [1–2 sentences telling students what critical thinking skill they're practising and what it means]\n\n**Stimulus material:** [The text, data, scenario, or source students will work with — or a description of what to provide]\n\n**Task instructions:** [Clear instructions that require evaluation, not just opinion]\n\n**Guiding questions:** [Scaffolded questions that structure the critical thinking process]\n\n### Critical vs. Surface Response Guide\n\n**A surface-level response looks like:**\n[Specific example of a surface response to THIS task — showing what to watch for]\n\n**A critical response looks like:**\n[Specific example of a critical response to THIS task — showing what genuine critical thinking produces]\n\n**The key difference:** [What separates surface from critical in this specific context]\n\n### Teacher Follow-Up Prompts\n\n[5–6 prompts the teacher can use when students produce surface responses — each designed to push thinking deeper without giving the answer]\n\n### Assessment Indicators\n\n[What to look for in student responses that indicates genuine critical thinking — specific, observable features, not vague descriptions like \"shows depth\"]\n\n**Self-check before returning output:** Verify that (a) the task is embedded in domain-specific content, not generic, (b) the task requires genuine evaluation, not just opinion or recall, (c) the surface vs. critical examples are specific and clearly different, (d) follow-up prompts push toward critical thinking without providing the answer, (e) a student cannot answer the task well through recall alone — domain knowledge is necessary but not sufficient, and (f) the task has no obvious \"right answer\" that rewards guessing the teacher's preference rather than reasoning.",
     "description": "Design a critical thinking task targeting specific skills like evaluating evidence, identifying bias, or analysing arguments. Use when embedding critical analysis into subject lessons.",
-    "toolName": "literacy-critical-thinking__critical-thinking-task-designer"
+    "toolName": "critical-thinking-task-designer"
   },
   {
     "metadata": {

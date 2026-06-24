@@ -43,6 +43,10 @@ skills/<domain>/<skill-name>/SKILL.md
 
 Do not rename or move existing skill folders unless the change is part of a deliberate repository-wide migration.
 
+Skill `name` values must be unique across the whole library (Claude Code identifies a skill by its name, so two skills cannot share one).
+
+When you add a **new domain folder**, add its path to the `skills` array in `.claude-plugin/plugin.json`. Claude Code only discovers skills one level below each listed folder, so every domain folder must be listed there for its skills to load.
+
 Every `SKILL.md` must preserve:
 
 - YAML frontmatter;
