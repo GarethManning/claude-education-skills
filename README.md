@@ -1,5 +1,7 @@
 # Education Agent Skills Library
 
+**English** | [简体中文](README.zh-CN.md)
+
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-1.0-blue)](https://agentskills.io)
 [![Skills](https://img.shields.io/badge/skills-165-blue)](https://github.com/GarethManning/education-agent-skills)
 [![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
@@ -189,7 +191,7 @@ Every skill is grounded in named research: specific authors, specific studies, s
 | **Emerging** | Promising research base with limited replication or practitioner translation |
 | **Original** | Practitioner framework; clearly labelled, not claimed as research-backed |
 
-Where original frameworks are included (Domain 14), they are labelled honestly. One important limitation: the skills encode research-grounded prompts, but the prompts themselves have not been empirically validated as AI interventions. That work is ongoing.
+Where original frameworks are included (Domain 15), they are labelled honestly. One important limitation: the skills encode research-grounded prompts, but the prompts themselves have not been empirically validated as AI interventions. That work is ongoing.
 
 **Built by an educator with 20 years of international school experience.**
 The pedagogical judgements embedded in every prompt, every output structure, and every known-limitations section reflect real classroom and curriculum design practice — not a reading of the literature.
