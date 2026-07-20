@@ -23,7 +23,9 @@ export const PROTECTED_RESOURCE_PATH = "/.well-known/oauth-protected-resource/mc
 export const AUTH_SERVER_METADATA_PATH = "/.well-known/oauth-authorization-server";
 
 const CODE_TTL_MS = 10 * 60 * 1000;
-const REFRESH_TOKEN_TTL_MS = 90 * 24 * 60 * 60 * 1000;
+// Keep the existing 30-day window until shared state can enforce replay-safe
+// rotation across serverless instances.
+const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const AUTH_CODE_VERSION = "eas_code_v1";
 const S256_CHALLENGE_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 const PKCE_VERIFIER_PATTERN = /^[A-Za-z0-9._~-]{43,128}$/;
