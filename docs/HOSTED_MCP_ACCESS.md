@@ -60,7 +60,7 @@ After a successful request, the service:
 1. Generates a unique signed access token.
 2. Sends the MCP URL, token, and client-specific setup instructions by email.
 
-The hosted MCP endpoint rejects anonymous requests. Access requests are rate-limited, and tokens may be revoked if abused. Free local, plugin, and manual options remain available.
+The hosted MCP endpoint rejects anonymous requests, and access requests are rate-limited. Free local, plugin, and manual options remain available.
 
 ## Connect after receiving a token
 
@@ -83,7 +83,7 @@ Do not put access tokens in query strings, shared configuration files, screensho
 ## Troubleshooting
 
 - If the message does not arrive, check spam or junk folders before retrying later.
-- A `401` response from `/mcp` means the token is missing, invalid, or revoked.
+- A `401` response from `/mcp` means the token is missing or is not being accepted.
 - For local setup questions, see [the MCP server README](../mcp-server/README.md).
 
 Never include an access token when opening a public issue. Describe the status code and client instead.
