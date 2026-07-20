@@ -1,4 +1,8 @@
 # Codex Compatibility Audit
+
+> [!WARNING]
+> Historical snapshot from 2026-05-10. Counts, manifests, tests, and compatibility conclusions below describe the repository at that date and are not maintained as current project documentation. Use `README.md`, `registry.json`, and the live validation suite for the current state.
+
 **Date:** 2026-05-10  
 **Scope:** Read-only audit of current repo structure vs. OpenAI Codex / agentskills.io requirements.  
 **No files were modified.**
