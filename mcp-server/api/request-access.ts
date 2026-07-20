@@ -17,11 +17,6 @@ import { createSignedAccessToken } from "../src/http-auth.js";
 const MCP_URL = "https://mcp-server-sigma-sooty.vercel.app/mcp";
 const PUBLIC_DOCS_URL = "https://github.com/GarethManning/education-agent-skills";
 const DEFAULT_FROM_EMAIL = "onboarding@resend.dev";
-const TOKEN_PREFIX_LENGTH = 18;
-
-function tokenPrefix(token: string): string {
-  return token.slice(0, TOKEN_PREFIX_LENGTH);
-}
 
 // --- Email via Resend ---
 
@@ -71,7 +66,7 @@ async function sendEmailViaResend(
   subject: string,
   body: string,
   env: Record<string, string | undefined>,
-): Promise<{ success: boolean; id?: string }> {
+): Promise<{ success: boolean }> {
   const apiKey = env.RESEND_API_KEY?.trim();
   if (!apiKey) {
     return { success: false };
@@ -99,8 +94,7 @@ async function sendEmailViaResend(
       return { success: false };
     }
 
-    const data = await res.json() as { id?: string };
-    return { success: true, id: data.id };
+    return { success: true };
   } catch {
     return { success: false };
   }
@@ -325,11 +319,8 @@ export default async function handler(
     return;
   }
 
-  console.log(`[request-access] Token issued (prefix: ${tokenPrefix(token)}, resend_id: ${result.id})`);
+  console.log("[request-access] Access email accepted");
 
   res.writeHead(200, { "content-type": "application/json" });
-  res.end(JSON.stringify({
-    success: true,
-    token_prefix: tokenPrefix(token),
-  }));
+  res.end(JSON.stringify({ success: true }));
 }

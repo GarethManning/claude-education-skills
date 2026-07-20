@@ -172,7 +172,8 @@ test.describe("Hosted access request endpoint", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers["cache-control"]).toBe("no-store");
-    expect(JSON.parse(response.body)).toMatchObject({ success: true });
+    expect(JSON.parse(response.body)).toEqual({ success: true });
+    expect(response.body).not.toContain("eas_live_");
   });
 
   test("does not expose internal configuration details", async () => {
