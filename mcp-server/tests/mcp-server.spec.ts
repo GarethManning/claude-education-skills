@@ -9,7 +9,14 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const SERVER_SCRIPT = resolve(__dirname, "../dist/index.js");
 const bundledSkills = JSON.parse(
   readFileSync(resolve(__dirname, "../src/skills.json"), "utf-8"),
-) as Array<{ metadata: { domain: string } }>;
+) as Array<{
+  metadata: { domain: string; skill_id: string };
+  prompt: string;
+  toolName: string;
+}>;
+const registry = JSON.parse(
+  readFileSync(resolve(__dirname, "../../registry.json"), "utf-8"),
+) as { total_skills: number };
 
 async function createClient(env?: Record<string, string>): Promise<Client> {
   const transport = new StdioClientTransport({
@@ -42,6 +49,18 @@ test.describe("MCP Server — Startup", () => {
 
     const { prompts } = await client.listPrompts();
     expect(prompts.length).toBe(bundledSkills.length);
+  });
+
+  test("bundles a non-empty prompt for every skill", () => {
+    const emptyPromptIds = bundledSkills
+      .filter((skill) => !skill.prompt.trim())
+      .map((skill) => skill.metadata.skill_id);
+
+    expect(emptyPromptIds).toEqual([]);
+  });
+
+  test("keeps the MCP bundle count aligned with the registry", () => {
+    expect(bundledSkills.length).toBe(registry.total_skills);
   });
 });
 
@@ -151,6 +170,34 @@ test.describe("MCP Server — skill tools", () => {
     expect(text).toContain("Cognitive Load Theory");
     expect(text).toContain("mitosis");
     expect(text).toContain("Year 9 novice");
+  });
+
+  test("returns the full system prompt for student-facing skills", async () => {
+    const result = await client.callTool({
+      name: "retrieve-first-gate",
+      arguments: {
+        topic: "photosynthesis",
+        context: "exam revision",
+      },
+    });
+    const text = (result.content as Array<{ type: string; text: string }>)[0].text;
+
+    expect(text).toContain("no substantive explanation until the learner has made a genuine recall attempt");
+    expect(text).toContain("SESSION OPENING");
+    expect(text).toContain("photosynthesis");
+  });
+
+  test("preserves integer and boolean input types in tool schemas", async () => {
+    const { tools } = await client.listTools();
+    const spacedPractice = tools.find((tool) => tool.name === "spaced-practice-scheduler");
+    const boundaryMapper = tools.find((tool) => tool.name === "ai-learning-boundary-mapper");
+
+    expect(spacedPractice?.inputSchema.properties?.lessons_per_week).toMatchObject({
+      type: "integer",
+    });
+    expect(boundaryMapper?.inputSchema.properties?.tool_comparison_needed).toMatchObject({
+      type: "boolean",
+    });
   });
 
   // The former slug collision (two `critical-thinking-task-designer` skills) was

@@ -238,6 +238,11 @@ test.describe("Plugin Manifest Validation", () => {
 });
 
 test.describe("Hosted MCP access control", () => {
+  test.skip(
+    !process.env.HOSTED_MCP_BASE_URL,
+    "Set HOSTED_MCP_BASE_URL to run the production smoke test",
+  );
+
   test("anonymous MCP requests fail fast with a token-required response", async ({ request }) => {
     const response = await request.post("/mcp", {
       headers: {

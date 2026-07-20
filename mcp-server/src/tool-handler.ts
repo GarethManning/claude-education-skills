@@ -47,7 +47,7 @@ export function handleListSkills(
     lines.push(`## ${d}\n`);
     for (const s of domainSkills) {
       lines.push(
-        `- **${s.metadata.skill_name}** (${s.toolName})\n  Evidence: ${s.metadata.evidence_strength} | Time: ${s.metadata.teacher_time} | Tags: ${s.metadata.tags.join(", ")}`,
+        `- **${s.metadata.skill_name}** (${s.toolName})\n  Evidence: ${s.metadata.evidence_strength} | Time: ${s.metadata.teacher_time ?? "not specified"} | Tags: ${s.metadata.tags.join(", ")}`,
       );
     }
     lines.push("");

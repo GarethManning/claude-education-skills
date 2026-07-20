@@ -7,6 +7,48 @@ import re
 import sys
 
 
+SUPPORTED_INPUT_TYPES = {"string", "array", "integer", "number", "boolean"}
+SUPPORTED_EVIDENCE_STRENGTHS = {
+    "strong",
+    "moderate",
+    "low-moderate",
+    "medium",
+    "emerging",
+    "original",
+    "practitioner",
+}
+
+
+def validate_input_fields(fields, section, errors):
+    if not isinstance(fields, list):
+        errors.append(f"input_schema.{section} must be a list")
+        return []
+
+    names = []
+    for i, field in enumerate(fields):
+        location = f"input_schema.{section}[{i}]"
+        if not isinstance(field, dict):
+            errors.append(f"{location} must be a mapping")
+            continue
+
+        name = field.get("field")
+        field_type = field.get("type")
+        description = field.get("description")
+        if not isinstance(name, str) or not name:
+            errors.append(f"{location}.field must be a non-empty string")
+        else:
+            names.append(name)
+        if field_type not in SUPPORTED_INPUT_TYPES:
+            errors.append(
+                f"{location}.type must be one of {sorted(SUPPORTED_INPUT_TYPES)}, "
+                f"got {field_type!r}"
+            )
+        if not isinstance(description, str) or not description:
+            errors.append(f"{location}.description must be a non-empty string")
+
+    return names
+
+
 def validate_skill(path):
     errors = []
     warnings = []
@@ -66,6 +108,48 @@ def validate_skill(path):
     for field in ["skill_id", "skill_name", "domain", "evidence_strength"]:
         if field not in fm:
             errors.append(f"Missing existing field: '{field}'")
+
+    evidence_strength = fm.get("evidence_strength")
+    if evidence_strength not in SUPPORTED_EVIDENCE_STRENGTHS:
+        errors.append(
+            "'evidence_strength' must be one of "
+            f"{sorted(SUPPORTED_EVIDENCE_STRENGTHS)}, got {evidence_strength!r}"
+        )
+
+    path_parts = path.split("/")
+    expected_domain = path_parts[-3]
+    expected_name = path_parts[-2]
+    expected_skill_id = f"{expected_domain}/{expected_name}"
+    if name and name != expected_name:
+        errors.append(f"'name' must match parent directory: {expected_name}")
+    if fm.get("domain") != expected_domain:
+        errors.append(f"'domain' must match domain directory: {expected_domain}")
+    if fm.get("skill_id") != expected_skill_id:
+        errors.append(f"'skill_id' must match path: {expected_skill_id}")
+
+    input_schema = fm.get("input_schema")
+    if not isinstance(input_schema, dict):
+        errors.append("Missing or invalid 'input_schema' mapping")
+    else:
+        required_names = validate_input_fields(
+            input_schema.get("required"), "required", errors
+        )
+        optional_names = validate_input_fields(
+            input_schema.get("optional", []), "optional", errors
+        )
+        duplicate_names = sorted(
+            name
+            for name in set(required_names + optional_names)
+            if (required_names + optional_names).count(name) > 1
+        )
+        if duplicate_names:
+            errors.append(
+                f"Duplicate input field names: {', '.join(duplicate_names)}"
+            )
+
+    for field in ["evidence_sources", "chains_well_with", "tags"]:
+        if not isinstance(fm.get(field), list):
+            errors.append(f"'{field}' must be a list")
 
     return errors, warnings
 

@@ -7,12 +7,31 @@ import {
   handleFindSkills,
   handleSuggestSkills,
 } from "./tool-handler.js";
-import type { LoadedSkill } from "./types.js";
+import {
+  EVIDENCE_STRENGTHS,
+  type InputSchemaField,
+  type LoadedSkill,
+} from "./types.js";
 
 const ANNOTATIONS = {
   readOnlyHint: true as const,
   destructiveHint: false as const,
 };
+
+function buildToolInputSchema(field: InputSchemaField): z.ZodTypeAny {
+  switch (field.type) {
+    case "array":
+      return z.array(z.unknown()).describe(field.description);
+    case "integer":
+      return z.number().int().describe(field.description);
+    case "number":
+      return z.number().describe(field.description);
+    case "boolean":
+      return z.boolean().describe(field.description);
+    case "string":
+      return z.string().describe(field.description);
+  }
+}
 
 export function createServer(skills: LoadedSkill[]): McpServer {
   const skillsByToolName = new Map<string, LoadedSkill>();
@@ -71,17 +90,11 @@ export function createServer(skills: LoadedSkill[]): McpServer {
     const shape: Record<string, z.ZodTypeAny> = {};
 
     for (const field of skill.metadata.input_schema.required) {
-      shape[field.field] =
-        field.type === "array"
-          ? z.array(z.any()).describe(field.description)
-          : z.string().describe(field.description);
+      shape[field.field] = buildToolInputSchema(field);
     }
     if (skill.metadata.input_schema.optional) {
       for (const field of skill.metadata.input_schema.optional) {
-        shape[field.field] =
-          field.type === "array"
-            ? z.array(z.any()).optional().describe(field.description)
-            : z.string().optional().describe(field.description);
+        shape[field.field] = buildToolInputSchema(field).optional();
       }
     }
 
@@ -134,7 +147,7 @@ Generate the complete output now.`;
     inputSchema: {
       query: z.string().optional().describe("Free text search across skill names, descriptions, and tags"),
       domain: z.string().optional().describe("Filter by domain"),
-      evidence_strength: z.string().optional().describe("Filter: strong | moderate | emerging | original"),
+      evidence_strength: z.enum(EVIDENCE_STRENGTHS).optional().describe("Filter by exact evidence strength label"),
       tag: z.string().optional().describe("Filter by tag"),
     },
     annotations: { title: "Find Skills", ...ANNOTATIONS },

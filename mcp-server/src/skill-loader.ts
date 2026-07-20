@@ -17,16 +17,20 @@ const IGNORED_FILES = new Set([
 const IGNORED_DIRS = new Set(["schemas", "mcp-server", ".git", "node_modules"]);
 
 function extractPrompt(content: string): string {
-  // Case 1: ## Prompt followed by a fenced code block (most common)
-  const promptMatch = content.match(/## Prompt\s*\n+```[^\n]*\n([\s\S]*?)```/);
+  // Case 1: ## Prompt or ## System Prompt followed by a fenced code block
+  const promptMatch = content.match(/^## (?:System )?Prompt\s*\n+```[^\n]*\n([\s\S]*?)```/m);
   if (promptMatch) return promptMatch[1].trim();
 
-  // Case 2: # Prompt (h1) with ## subheadings inside — stop at next h1
-  const h1Match = content.match(/^# Prompt[ \t]*\n([\s\S]*?)(?=^# [^#])/m);
+  // Case 2: h1 prompt with h2 subheadings inside — stop at next h1 or EOF
+  const h1Match = content.match(
+    /^# (?:System )?Prompt[ \t]*\n([\s\S]*?)(?=^# [^#]|$(?![\s\S]))/m,
+  );
   if (h1Match) return h1Match[1].trim();
 
-  // Case 3: ## Prompt without code block — stop at next ## or ---
-  const sectionMatch = content.match(/## Prompt\s*\n+([\s\S]*?)(?=\n## |\n---\s*$)/);
+  // Case 3: h2 prompt without code block — stop at next h2, separator, or EOF
+  const sectionMatch = content.match(
+    /^## (?:System )?Prompt\s*\n+([\s\S]*?)(?=\n## |\n---[ \t]*(?:\n|$)|$(?![\s\S]))/m,
+  );
   if (sectionMatch) return sectionMatch[1].trim();
 
   return "";
@@ -130,11 +134,13 @@ export async function loadSkills(libraryRoot: string): Promise<LoadedSkill[]> {
       const metadata = data as SkillMetadata;
 
       if (!metadata.skill_id || !metadata.input_schema) {
-        console.error(`Skipping ${filePath}: missing skill_id or input_schema`);
-        continue;
+        throw new Error("missing skill_id or input_schema");
       }
 
       const prompt = extractPrompt(content);
+      if (!prompt) {
+        throw new Error("missing a supported Prompt or System Prompt section");
+      }
       // Prefer v2 frontmatter description, fall back to markdown body extraction
       const description = (typeof metadata.description === "string" && metadata.description)
         ? metadata.description
@@ -143,7 +149,8 @@ export async function loadSkills(libraryRoot: string): Promise<LoadedSkill[]> {
 
       skills.push({ metadata, prompt, description, filePath, toolName });
     } catch (err) {
-      console.error(`Failed to parse ${filePath}:`, err);
+      const message = err instanceof Error ? err.message : String(err);
+      throw new Error(`Failed to load ${filePath}: ${message}`);
     }
   }
 
