@@ -1,5 +1,10 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { authorizationPage, createAuthorizationCode, isIssuedAccessToken } from "../../src/oauth.js";
+import {
+  authorizationPage,
+  authorizationRequestError,
+  createAuthorizationCode,
+  isIssuedAccessToken,
+} from "../../src/oauth.js";
 
 async function readBody(req: IncomingMessage & { body?: unknown }): Promise<URLSearchParams> {
   if (typeof req.body === "string") return new URLSearchParams(req.body);
@@ -12,9 +17,14 @@ async function readBody(req: IncomingMessage & { body?: unknown }): Promise<URLS
 export default async function handler(req: IncomingMessage & { body?: unknown }, res: ServerResponse) {
   if (req.method === "GET") {
     const url = new URL(req.url || "/api/oauth/authorize", "https://example.invalid");
+    const requestError = authorizationRequestError(url.searchParams);
     res.setHeader("content-type", "text/html; charset=utf-8");
-    res.writeHead(200);
-    res.end(authorizationPage(url.searchParams));
+    res.writeHead(requestError ? 400 : 200, { "cache-control": "no-store" });
+    res.end(
+      requestError
+        ? authorizationPage(new URLSearchParams(), requestError)
+        : authorizationPage(url.searchParams),
+    );
     return;
   }
 
@@ -31,25 +41,42 @@ export default async function handler(req: IncomingMessage & { body?: unknown },
   const state = form.get("state") || "";
   const responseType = form.get("response_type") || "code";
 
-  if (responseType !== "code" || !redirectUri) {
-    res.writeHead(400, { "content-type": "text/html; charset=utf-8" });
-    res.end(authorizationPage(form, "Invalid OAuth request from client."));
+  const requestError = authorizationRequestError(form);
+  if (requestError || responseType !== "code" || !redirectUri) {
+    res.writeHead(400, {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store",
+    });
+    res.end(authorizationPage(new URLSearchParams(), requestError || "Invalid OAuth request from client."));
     return;
   }
 
   if (!isIssuedAccessToken(accessToken)) {
-    res.writeHead(401, { "content-type": "text/html; charset=utf-8" });
+    res.writeHead(401, {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store",
+    });
     res.end(authorizationPage(form, "That access token was not recognized. Paste the token from the Education Agent Skills access email."));
     return;
   }
 
-  const code = createAuthorizationCode({
-    token: accessToken,
-    redirectUri,
-    clientId,
-    codeChallenge: form.get("code_challenge") || undefined,
-    codeChallengeMethod: form.get("code_challenge_method") || undefined,
-  });
+  let code: string;
+  try {
+    code = createAuthorizationCode({
+      token: accessToken,
+      redirectUri,
+      clientId,
+      codeChallenge: form.get("code_challenge") || undefined,
+      codeChallengeMethod: form.get("code_challenge_method") || undefined,
+    });
+  } catch {
+    res.writeHead(500, {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store",
+    });
+    res.end(authorizationPage(new URLSearchParams(), "Unable to complete authorization."));
+    return;
+  }
 
   const redirect = new URL(redirectUri);
   redirect.searchParams.set("code", code);

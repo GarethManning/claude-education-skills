@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { createSignedAccessToken } from "../src/http-auth.js";
 
 /**
  * Self-hosted MCP access request endpoint.
@@ -18,17 +18,6 @@ const MCP_URL = "https://mcp-server-sigma-sooty.vercel.app/mcp";
 const PUBLIC_DOCS_URL = "https://github.com/GarethManning/education-agent-skills";
 const DEFAULT_FROM_EMAIL = "onboarding@resend.dev";
 const TOKEN_PREFIX_LENGTH = 18;
-
-// --- Token generation (mirrors Python make_token in mcp_access_agent_automation.py) ---
-
-function makeToken(env: Record<string, string | undefined>): string {
-  const secret = env.MCP_TOKEN_SIGNING_SECRET?.trim();
-  if (!secret) throw new Error("MCP_TOKEN_SIGNING_SECRET is not configured");
-
-  const payload = "eas_live_" + randomBytes(32).toString("base64url");
-  const signature = createHmac("sha256", secret).update(payload).digest("base64url");
-  return `${payload}.${signature}`;
-}
 
 function tokenPrefix(token: string): string {
   return token.slice(0, TOKEN_PREFIX_LENGTH);
@@ -82,10 +71,10 @@ async function sendEmailViaResend(
   subject: string,
   body: string,
   env: Record<string, string | undefined>,
-): Promise<{ success: boolean; id?: string; error?: string }> {
+): Promise<{ success: boolean; id?: string }> {
   const apiKey = env.RESEND_API_KEY?.trim();
   if (!apiKey) {
-    return { success: false, error: "RESEND_API_KEY is not configured" };
+    return { success: false };
   }
 
   const fromEmail = env.MCP_FROM_EMAIL?.trim() || DEFAULT_FROM_EMAIL;
@@ -107,14 +96,13 @@ async function sendEmailViaResend(
     });
 
     if (!res.ok) {
-      const errText = await res.text();
-      return { success: false, error: `Resend API error ${res.status}: ${errText}` };
+      return { success: false };
     }
 
     const data = await res.json() as { id?: string };
     return { success: true, id: data.id };
-  } catch (err) {
-    return { success: false, error: `Fetch error: ${err instanceof Error ? err.message : String(err)}` };
+  } catch {
+    return { success: false };
   }
 }
 
@@ -243,6 +231,7 @@ export default async function handler(
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Cache-Control", "no-store");
 
   if (req.method === "OPTIONS") {
     res.writeHead(204);
@@ -310,11 +299,14 @@ export default async function handler(
   // Generate token
   let token: string;
   try {
-    token = makeToken(process.env);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : "Unknown error";
-    res.writeHead(500, { "content-type": "application/json" });
-    res.end(JSON.stringify({ success: false, error: `Server configuration error: ${msg}` }));
+    token = createSignedAccessToken(process.env);
+  } catch {
+    console.error("[request-access] Token generation is unavailable");
+    res.writeHead(503, { "content-type": "application/json" });
+    res.end(JSON.stringify({
+      success: false,
+      error: "Hosted access is temporarily unavailable. Please try again later.",
+    }));
     return;
   }
 
@@ -324,19 +316,16 @@ export default async function handler(
   const result = await sendEmailViaResend(email, subject, emailBody, process.env);
 
   if (!result.success) {
-    // DEBUG: temporarily expose the error
-    console.error(`[request-access] Email send failed for ${email}: ${result.error}`);
-    res.writeHead(200, { "content-type": "application/json" });
+    console.error("[request-access] Email delivery failed");
+    res.writeHead(502, { "content-type": "application/json" });
     res.end(JSON.stringify({
-      success: true,
-      token_prefix: tokenPrefix(token),
-      warning: "Token generated but email delivery may be delayed.",
-      _debug_error: result.error,
+      success: false,
+      error: "Unable to send the access email. Please try again later.",
     }));
     return;
   }
 
-  console.log(`[request-access] Token issued for ${email} (prefix: ${tokenPrefix(token)}, resend_id: ${result.id})`);
+  console.log(`[request-access] Token issued (prefix: ${tokenPrefix(token)}, resend_id: ${result.id})`);
 
   res.writeHead(200, { "content-type": "application/json" });
   res.end(JSON.stringify({

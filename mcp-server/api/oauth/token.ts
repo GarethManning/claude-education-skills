@@ -1,5 +1,14 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { createRefreshToken, verifyAuthorizationCode, verifyRefreshToken } from "../../src/oauth.js";
+import {
+  createRefreshToken,
+  DEFAULT_CLIENT_ID,
+  verifyAuthorizationCode,
+  verifyRefreshToken,
+} from "../../src/oauth.js";
+import {
+  createSignedAccessToken,
+  getSignedAccessTokenExpiresInSeconds,
+} from "../../src/http-auth.js";
 
 async function readBody(req: IncomingMessage & { body?: unknown }): Promise<URLSearchParams> {
   if (typeof req.body === "string") return new URLSearchParams(req.body);
@@ -22,11 +31,17 @@ export default async function handler(req: IncomingMessage & { body?: unknown },
 
   if (grantType === "authorization_code") {
     const code = body.get("code") || "";
-    const verifier = body.get("code_verifier") || undefined;
-    const payload = verifyAuthorizationCode(code, verifier);
+    const payload = verifyAuthorizationCode(code, {
+      verifier: body.get("code_verifier") || "",
+      redirectUri: body.get("redirect_uri") || "",
+      clientId: body.get("client_id") || DEFAULT_CLIENT_ID,
+    });
     accessToken = payload?.token || null;
   } else if (grantType === "refresh_token") {
-    accessToken = verifyRefreshToken(body.get("refresh_token") || "");
+    const previousAccessToken = verifyRefreshToken(body.get("refresh_token") || "");
+    accessToken = previousAccessToken && getSignedAccessTokenExpiresInSeconds(previousAccessToken) !== undefined
+      ? createSignedAccessToken(process.env)
+      : previousAccessToken;
   }
 
   if (!accessToken) {
@@ -36,10 +51,11 @@ export default async function handler(req: IncomingMessage & { body?: unknown },
   }
 
   res.writeHead(200, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+  const expiresIn = getSignedAccessTokenExpiresInSeconds(accessToken);
   res.end(JSON.stringify({
     access_token: accessToken,
     token_type: "Bearer",
-    expires_in: 60 * 60 * 24 * 30,
+    ...(expiresIn === undefined ? {} : { expires_in: expiresIn }),
     refresh_token: createRefreshToken(accessToken),
     scope: "mcp",
   }));

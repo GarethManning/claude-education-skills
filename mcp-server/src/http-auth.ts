@@ -1,4 +1,4 @@
-import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { HOSTED_MCP_ACCESS_SIGNUP_URL } from "./access.js";
 
 export type AuthEnv = Record<string, string | undefined>;
@@ -7,6 +7,7 @@ export type AuthCheckInput = {
   url?: string;
   authorization?: string | string[];
   env?: AuthEnv;
+  now?: number;
 };
 
 export type HttpAuthResponse = {
@@ -16,6 +17,29 @@ export type HttpAuthResponse = {
 };
 
 const TOKEN_PREFIX_LENGTH = 18;
+const ACCESS_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+type ExpiringAccessTokenClaims = {
+  version: 1;
+  exp: number;
+};
+
+export function createSignedAccessToken(
+  env: AuthEnv = process.env,
+  now = Date.now(),
+): string {
+  const secret = env.MCP_TOKEN_SIGNING_SECRET?.trim();
+  if (!secret) throw new Error("MCP_TOKEN_SIGNING_SECRET is not configured");
+
+  const nonce = randomBytes(24).toString("base64url");
+  const claims = Buffer.from(
+    JSON.stringify({ version: 1, exp: now + ACCESS_TOKEN_TTL_MS }),
+    "utf8",
+  ).toString("base64url");
+  const payload = `eas_live_${nonce}.${claims}`;
+  const signature = createHmac("sha256", secret).update(payload).digest("base64url");
+  return `${payload}.${signature}`;
+}
 
 export function hasConfiguredAuth(env: AuthEnv = process.env): boolean {
   return Boolean(
@@ -53,7 +77,7 @@ export function getAuthorizedTokenPrefix(input: AuthCheckInput): string | null {
   const env = input.env ?? process.env;
   const token = extractToken(input.url, input.authorization);
   if (!token || !hasConfiguredAuth(env)) return null;
-  if (isSignedTokenValid(token, env.MCP_TOKEN_SIGNING_SECRET)) {
+  if (isSignedTokenValid(token, env.MCP_TOKEN_SIGNING_SECRET, input.now ?? Date.now())) {
     return token.slice(0, TOKEN_PREFIX_LENGTH);
   }
   if (isHashTokenValid(token, env.MCP_ACCESS_TOKEN_HASHES)) {
@@ -69,25 +93,70 @@ export function extractToken(url?: string, authorization?: string | string[]): s
   const header = Array.isArray(authorization) ? authorization[0] : authorization;
   const bearer = header?.match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
   if (bearer) return bearer;
-  if (!url) return null;
+  return null;
+}
+
+export function getSignedAccessTokenExpiresInSeconds(
+  token: string,
+  now = Date.now(),
+): number | undefined {
+  const dot = token.lastIndexOf(".");
+  if (dot < 1) return undefined;
+  const claims = parseExpiringClaims(token.slice(0, dot));
+  if (!claims) return undefined;
+  return Math.max(0, Math.ceil((claims.exp - now) / 1000));
+}
+
+export function isAuthenticSignedAccessToken(
+  token: string,
+  env: AuthEnv = process.env,
+): boolean {
+  return authenticSignedTokenClaims(token, env.MCP_TOKEN_SIGNING_SECRET) !== undefined;
+}
+
+function isSignedTokenValid(token: string, secret: string | undefined, now: number): boolean {
+  const claims = authenticSignedTokenClaims(token, secret);
+  if (claims === undefined) return false;
+  return claims === null || claims.exp > now;
+}
+
+function authenticSignedTokenClaims(
+  token: string,
+  secret: string | undefined,
+): ExpiringAccessTokenClaims | null | undefined {
+  const cleanSecret = secret?.trim();
+  if (!cleanSecret) return undefined;
+  const dot = token.lastIndexOf(".");
+  if (dot < 1) return undefined;
+  const payload = token.slice(0, dot);
+  const signature = token.slice(dot + 1);
+  if (!payload.startsWith("eas_live_") || !signature) return undefined;
+  const expected = createHmac("sha256", cleanSecret).update(payload).digest("base64url");
+  if (!safeEqual(signature, expected)) return undefined;
+
+  const claimsSeparator = payload.indexOf(".", "eas_live_".length);
+  if (claimsSeparator < 0) return null;
+  const claims = parseExpiringClaims(payload);
+  return claims ?? undefined;
+}
+
+function parseExpiringClaims(payload: string): ExpiringAccessTokenClaims | null {
+  const claimsSeparator = payload.indexOf(".", "eas_live_".length);
+  if (claimsSeparator < 0) return null;
+
   try {
-    const parsed = new URL(url, "https://example.invalid");
-    return parsed.searchParams.get("token")?.trim() || null;
+    const claims = JSON.parse(
+      Buffer.from(payload.slice(claimsSeparator + 1), "base64url").toString("utf8"),
+    ) as Partial<ExpiringAccessTokenClaims>;
+    if (
+      claims.version !== 1 ||
+      typeof claims.exp !== "number" ||
+      !Number.isFinite(claims.exp)
+    ) return null;
+    return claims as ExpiringAccessTokenClaims;
   } catch {
     return null;
   }
-}
-
-function isSignedTokenValid(token: string, secret?: string): boolean {
-  const cleanSecret = secret?.trim();
-  if (!cleanSecret) return false;
-  const dot = token.lastIndexOf(".");
-  if (dot < 1) return false;
-  const payload = token.slice(0, dot);
-  const signature = token.slice(dot + 1);
-  if (!payload.startsWith("eas_live_") || !signature) return false;
-  const expected = createHmac("sha256", cleanSecret).update(payload).digest("base64url");
-  return safeEqual(signature, expected);
 }
 
 function isHashTokenValid(token: string, hashes?: string): boolean {

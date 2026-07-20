@@ -83,6 +83,15 @@ npm run bundle-skills # Re-generate src/skills.json for Vercel deployment
 | Variable | Description |
 |----------|-------------|
 | `SKILLS_FILTER` | Comma-separated domain names to limit which domains are loaded. Omit for all 20 domains. |
+| `MCP_TOKEN_SIGNING_SECRET` | Required to issue and validate signed hosted-access tokens. Use a long random secret. Newly issued tokens expire after 30 days. |
+| `MCP_OAUTH_SIGNING_SECRET` | Optional separate secret for OAuth authorization and refresh tokens. Defaults to `MCP_TOKEN_SIGNING_SECRET`. |
+| `MCP_PUBLIC_BASE_URL` | Canonical public origin used in OAuth metadata. Set this for non-production or custom-domain deployments. |
+| `MCP_OAUTH_REDIRECT_URIS` | Optional comma- or newline-separated list of additional exact OAuth callback URLs. The Claude callback is always allowed. |
+| `MCP_ACCESS_TOKEN_HASHES` | Optional comma- or newline-separated SHA-256 hashes for manually issued compatibility tokens. |
+| `RESEND_API_KEY` | Required by `/api/request-access` to deliver access-token emails. |
+| `MCP_FROM_EMAIL` | Optional verified sender address for access-token emails. |
+
+Hosted OAuth requires S256 PKCE. Bearer tokens are accepted only in the `Authorization` header; query-string tokens are rejected to keep credentials out of URLs and logs.
 
 ## How skill tools work
 
