@@ -5,18 +5,33 @@
 [![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 [![Last Commit](https://img.shields.io/github/last-commit/GarethManning/education-agent-skills)](https://github.com/GarethManning/education-agent-skills/commits/main)
 
-An open-source library of 165 evidence-based pedagogical skills across 20 domains — works in Claude Code, Claude.ai (via MCP), OpenAI Codex, and Hermes Agent, and is engineered for AI agent orchestration. Domains 1–19 are teacher and designer-facing. Domain 20 is the first student-facing domain: live AI interaction patterns that shape how AI responds to learners during study sessions.
+An open library of 165 evidence-based pedagogical skills across 20 domains. It helps educators design stronger lessons, units, assessments, projects, curricula, and learning systems—and gives AI builders a structured education knowledge layer for Claude, Codex, Hermes, and other Agent Skills-compatible tools.
 
-> [!IMPORTANT]
-> **Hosted MCP access now requires an auth token.**
->
-> The library is still free and open source, and local/plugin/manual use remains the recommended free path. The hosted MCP server is still available for people who specifically need a remote MCP endpoint, but anonymous access is now blocked so the service stays sustainable.
->
-> **Need hosted MCP?** [Request an access token](https://docs.google.com/forms/d/e/1FAIpQLSdW1EdcmtjSPPq68Hx-bdth5hO2KNyjhAwEV9Ld0EwWL1Gr8Q/viewform) or [jump to hosted MCP setup](#mcp-server).
+**Tool access is cheap. Pedagogical judgement is the scarce layer.**
+
+## Choose your path
+
+### I am an educator or school leader
+
+You do not need to understand code or install the whole library. Start with a real task—from improving tomorrow's lesson to redesigning a curriculum or school learning model—and use only the skills that fit your context.
+
+- [Start with the educator guide](docs/EDUCATOR_QUICKSTART.md)
+- [Browse all 20 domains](#the-20-domains)
+- [See a classroom example](#try-it-now)
+- [Understand the evidence standard](#what-makes-this-different)
+
+### I am an AI, agent, or EdTech builder
+
+Install the skills locally or connect through the hosted MCP service. Every skill includes evidence metadata, typed inputs and outputs, known limitations, and chaining information for orchestration.
+
+- [Install for Claude, Codex, or Hermes](#install-in-an-ai-tool)
+- [Read the architecture](docs/ARCHITECTURE.md)
+- [Use the hosted MCP service](#mcp-server)
+- [Contribute a skill](CONTRIBUTING.md)
 
 ---
 
-## Get Started
+## Install in an AI tool
 
 Works with Claude, Codex, Hermes Agent, and any tool that supports the Agent Skills standard.
 
@@ -36,7 +51,7 @@ https://github.com/GarethManning/education-agent-skills
 claude plugin install https://github.com/GarethManning/education-agent-skills
 ```
 
-**Claude.ai / Claude Desktop (hosted MCP)** — use only if your workflow specifically needs a remote MCP connector. Hosted access requires a token:
+**Claude.ai / Claude Desktop (hosted MCP)** — use only if your workflow specifically needs a remote MCP connector. Hosted access requires a token so the service stays sustainable:
 
 ```text
 https://mcp-server-sigma-sooty.vercel.app/mcp
@@ -92,30 +107,11 @@ Full Hermes guide: [docs/HERMES.md](docs/HERMES.md).
 
 Copy skill folders from `skills/` into your agent's skills directory. Each skill is a folder containing `SKILL.md` with name/description frontmatter — no dependencies, no build step.
 
-### Manual (no setup)
+### Manual use (no setup)
 
 1. Open any skill file in the repository (under `skills/`)
 2. Copy the prompt block
 3. Paste it into any AI and fill in the fields for your class or context
-
----
-
-## Feedback & Contributions
-
-I'd love to hear your thoughts. If you have suggestions, find bugs, or want to contribute:
-
-- Email: gareth.manning@gmail.com
-- X: https://x.com/worldteacherman
-- LinkedIn: https://www.linkedin.com/in/gareth-manning-a404b387/
-- Open a Pull Request or Issue on GitHub
-
----
-
-**I'm an educator — [start here](#try-it-now)**
-No setup required. Use the plugin, a local skill install, or manual copy-paste and start teaching.
-
-**I'm a developer or AI builder — [start here](#architecture)**
-YAML schemas, typed inputs and outputs, chaining metadata, [live MCP server](#mcp-server).
 
 ---
 
@@ -242,7 +238,7 @@ The skill library is available as a live MCP server for clients that specificall
 
 **Production URL:** `https://mcp-server-sigma-sooty.vercel.app/mcp`
 
-Important: the hosted MCP server is a convenience endpoint, not the only way to use the library. If you can install the skills locally, prefer the free local options in [Get Started](#get-started).
+Important: the hosted MCP server is a convenience endpoint, not the only way to use the library. If you can install the skills locally, prefer the free local options in [Install in an AI tool](#install-in-an-ai-tool).
 
 Hosted MCP access now requires a unique auth token. Request one here: [Hosted MCP access signup](https://docs.google.com/forms/d/e/1FAIpQLSdW1EdcmtjSPPq68Hx-bdth5hO2KNyjhAwEV9Ld0EwWL1Gr8Q/viewform). Gareth's Agent normally emails the MCP URL, token, and short setup instructions within a few minutes. See [Hosted MCP access](docs/HOSTED_MCP_ACCESS.md) for details.
 
@@ -273,6 +269,8 @@ Source code, local setup, and development instructions: [`mcp-server/`](mcp-serv
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for inclusion criteria. The standard is high intentionally — every skill must be grounded in named evidence, honestly rated, and practically useful. The library's value depends on its rigour.
+
+Questions, classroom feedback, and implementation examples are welcome through [GitHub Discussions](https://github.com/GarethManning/education-agent-skills/discussions). Use an [issue](https://github.com/GarethManning/education-agent-skills/issues) for a reproducible problem or a specific skill proposal.
 
 ### Workflow for adding or revising a skill
 

@@ -1,0 +1,51 @@
+name: Propose a skill or improvement
+description: Suggest a research-grounded addition or a concrete improvement to an existing skill.
+title: "[Skill proposal]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: The library's standard is evidence-grounded and practically useful. A proposal can begin with practitioner experience, but research claims need named, checkable sources before inclusion.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Proposal type
+      options:
+        - Improve an existing skill
+        - Add a new skill
+        - Add an educator use case or example
+        - Improve evidence or limitations
+    validations:
+      required: true
+  - type: textarea
+    id: need
+    attributes:
+      label: Educator or learner need
+      description: What real task or problem would this address, and for whom?
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: What happens currently?
+      description: Link an existing skill if relevant and explain the gap precisely.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence and sources
+      description: List named research, reviews, frameworks, or credible practitioner evidence. Include links or citations when possible.
+  - type: textarea
+    id: output
+    attributes:
+      label: Useful output
+      description: What should the skill help a person or agent produce or decide?
+    validations:
+      required: true
+  - type: textarea
+    id: limitations
+    attributes:
+      label: Known limitations or risks
+      description: Where could this guidance be misapplied or require human judgement?

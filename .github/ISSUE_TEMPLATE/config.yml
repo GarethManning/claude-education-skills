@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question or share an implementation
+    url: https://github.com/GarethManning/education-agent-skills/discussions
+    about: Use Discussions for questions, classroom examples, and open-ended ideas.
+  - name: Request hosted MCP access
+    url: https://docs.google.com/forms/d/e/1FAIpQLSdW1EdcmtjSPPq68Hx-bdth5hO2KNyjhAwEV9Ld0EwWL1Gr8Q/viewform
+    about: Request a token for the optional hosted MCP service.
