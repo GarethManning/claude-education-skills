@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "generated": "2026-06-26T11:24:25.994801+00:00",
+  "generated": "2026-08-03T13:16:21.271841+00:00",
   "standard": "agent-skills-1.0",
   "total_skills": 165,
   "domains": [
@@ -3616,7 +3616,7 @@
       "name": "regenerative-project-design-orchestrator",
       "display_name": "Regenerative Project Design Orchestrator",
       "domain": "original-frameworks",
-      "description": "Present project-design pathway options and orchestrate regenerative projects using backwards design, PBL, SEEDS, compassionate systems action, or civic/service pathways.",
+      "description": "Use when designing education for regeneration, regenerative action, or competency-based regenerative curriculum. Separate ambition from pedagogy; orchestrate ethical learning, assessment, systems action, evidence, and stewardship.",
       "disable_model_invocation": false,
       "evidence_strength": "emerging",
       "tags": [
@@ -3626,13 +3626,18 @@
         "regenerative",
         "emerging-evidence",
         "project-design",
+        "competency-based-curriculum",
+        "assessment",
         "PBL",
         "backwards-design",
         "SEEDS",
         "service-learning",
-        "student-agency"
+        "student-agency",
+        "systems-health",
+        "stewardship",
+        "impact-evidence"
       ],
-      "teacher_time": "8 minutes",
+      "teacher_time": "10-minute triage; 45\u201390 minutes for preliminary design, plus local consultation",
       "chains_with": [
         "backwards-design-unit-planner",
         "project-brief-designer",
@@ -3643,7 +3648,24 @@
         "systems-awareness-iceberg",
         "aspirational-systems-iceberg",
         "agency-circles-for-systems-action",
-        "assessment-validity-checker"
+        "assessment-validity-checker",
+        "scoping-for-transformative-learning-inquiry",
+        "place-based-curriculum-orchestrator",
+        "ecological-inquiry-anchor-designer",
+        "three-horizons-learning-transition-mapper",
+        "mental-model-mapper",
+        "leverage-and-response-design",
+        "curriculum-knowledge-architecture-designer",
+        "competency-unpacker",
+        "kud-knowledge-type-mapper",
+        "learning-progression-builder",
+        "developmental-band-system-designer",
+        "learning-target-authoring-guide",
+        "scope-and-sequence-designer",
+        "assessment-design-orchestrator",
+        "dispositional-knowledge-assessment-designer",
+        "coherent-rubric-logic-builder",
+        "criterion-referenced-rubric-generator"
       ],
       "chain_edges": {
         "receives_from": [],
