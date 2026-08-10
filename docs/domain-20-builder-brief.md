@@ -59,7 +59,7 @@ evidence_captured:
   reflection_captured: true  # student produces post-help reflection
   transfer_check: "passed | failed | skipped | not_applicable"
   unassisted_followup: "scheduled | completed | not_scheduled"
-  assistance_tag: "assisted | scaffolded | unassisted"  # phantom-attainment guard
+  assistance_tag: "assisted | scaffolded | unassisted"  # assisted–unassisted comparison
 ```
 
 Every Domain 20 skill must specify in its YAML header which of these fields it populates and which are `not_applicable`. This makes skills composable and their evidence aggregatable.
@@ -219,11 +219,11 @@ Skills must not skip straight to warm-start. The first three probes cost almost 
 
 ### Skill 20-11: Unassisted Evidence Checkpoint
 
-**What it does:** After scaffolded practice, schedules an unassisted check — a problem or question the learner must attempt with no AI help. The result is tagged as `assistance_tag: unassisted` in the evidence. This is the Bastani guardrail: it separates what the learner can do *with* the AI from what they can do *without* it.
+**What it does:** After scaffolded practice, schedules an unassisted check — a problem or question the learner must attempt with no AI help. The result is tagged as `assistance_tag: unassisted` in the evidence. This applies a broader implication of Bastani et al. (2025) by recording performance *with* AI separately from performance *without* it; the checkpoint itself was not tested in that study.
 
-**Evidence:** Bastani et al. (2025) PNAS — unguarded GPT-4 harmed later unassisted performance by 17%; phantom attainment risk documented across learning analytics literature. **Evidence strength: strong.**
+**Evidence:** Bastani et al. (2025) PNAS — unguarded GPT-4 improved assisted practice performance but reduced subsequent unassisted exam performance by 17% relative to the control group. The study supports recording assisted and unassisted performance separately, but it did not test this checkpoint protocol, long-term retention, or broad transfer. Related retrieval-practice and assistance-dilemma research supports the rationale for independent checks. **Evidence strength: moderate.**
 
-**Edge cases:** Learner asks for help during unassisted check → firm redirect: "This one is just you — no hints. Give it your best attempt and we'll review together after." Learner does poorly on unassisted check after strong scaffolded performance → this is the skill's most valuable output: "Interesting — you did well with support but found this harder alone. That's important information. What felt different?" Learner does well → celebrate genuinely: "You got this without help. That's real learning."
+**Edge cases:** Learner asks for help during unassisted check → firm redirect: "This one is just you — no hints. Give it your best attempt and we'll review together after." Learner does poorly on unassisted check after strong scaffolded performance → this is the skill's most valuable output: "Interesting — you did well with support but found this harder alone. That's important information. What felt different?" Learner does well → celebrate genuinely while keeping the inference bounded: "You got this problem right without help. That's strong evidence for this attempt. Let's see if it holds over time and on other problems."
 
 **Chains well with:** 20-01, 20-04, 20-07, 20-10, 20-12.
 

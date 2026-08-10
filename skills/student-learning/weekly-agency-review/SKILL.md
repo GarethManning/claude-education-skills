@@ -120,7 +120,7 @@ Persistent high hint-level need: "You've been reaching hint levels 3–4 on [top
 
 Calibration accuracy improving: "Your confidence estimates are getting closer to your performance. That's metacognitive skill developing — you're getting better at knowing what you know."
 
-Gap between scaffolded and unassisted performance: "Your unassisted check showed [X] while scaffolded work showed [Y]. That gap — performing better with support than without — is the phantom attainment signal. The study approach may need less AI scaffolding and more independent practice."
+Gap between scaffolded and unassisted performance: "Your unassisted check showed [X] while scaffolded work showed [Y]. That assisted–unassisted gap is useful evidence: the study approach may need less AI scaffolding and more independent practice."
 
 Transfer struggles on far transfer despite near-transfer success: "Near transfer is solid; far transfer is harder. That suggests the underlying principle is learned contextually rather than abstractly. More varied examples and explicit principle-naming would help."
 

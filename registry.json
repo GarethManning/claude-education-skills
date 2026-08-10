@@ -1,6 +1,6 @@
 {
   "version": "2.0",
-  "generated": "2026-06-26T11:24:25.994801+00:00",
+  "generated": "2026-08-10T12:45:42.238213+00:00",
   "standard": "agent-skills-1.0",
   "total_skills": 165,
   "domains": [
@@ -4797,12 +4797,12 @@
       "name": "unassisted-evidence-checkpoint",
       "display_name": "Unassisted Evidence Checkpoint",
       "domain": "student-learning",
-      "description": "After scaffolded practice, run an unassisted check \u2014 a problem with no AI help. Separates what the learner can do with support from what they can do independently. Critical for preventing phantom attainment.",
+      "description": "After scaffolded practice, run an unassisted check with no AI help. Use to distinguish supported performance from what the learner can currently do independently.",
       "disable_model_invocation": false,
-      "evidence_strength": "strong",
+      "evidence_strength": "moderate",
       "tags": [
         "unassisted",
-        "phantom-attainment",
+        "assisted-unassisted-gap",
         "independence",
         "evidence",
         "Bastani"

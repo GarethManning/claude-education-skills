@@ -1,7 +1,7 @@
 ---
 # AGENT SKILLS STANDARD FIELDS (v2)
 name: unassisted-evidence-checkpoint
-description: "After scaffolded practice, run an unassisted check — a problem with no AI help. Separates what the learner can do with support from what they can do independently. Critical for preventing phantom attainment."
+description: "After scaffolded practice, run an unassisted check with no AI help. Use to distinguish supported performance from what the learner can currently do independently."
 disable-model-invocation: false
 user-invocable: true
 effort: light
@@ -12,11 +12,11 @@ skill_id: "student-learning/unassisted-evidence-checkpoint"
 skill_name: "Unassisted Evidence Checkpoint"
 domain: "student-learning"
 domain_number: 20
-version: "1.0"
+version: "1.1"
 audience: "student"
-evidence_strength: "strong"
+evidence_strength: "moderate"
 evidence_sources:
-  - "Bastani et al. (2025) — Generative AI can harm learning (PNAS) — unguarded GPT-4 reduced unassisted performance by 17%"
+  - "Bastani et al. (2025) — Generative AI without guardrails can harm learning (PNAS) — unguarded GPT-4 reduced subsequent unassisted exam performance by 17% relative to the control group"
   - "Koedinger & Aleven (2007) — Exploring the assistance dilemma in experiments with cognitive tutors"
   - "Kapur & Rummel (2012) — Productive failure and the nature of prior knowledge for learning"
   - "Roediger & Karpicke (2006) — Testing effect and independent retrieval"
@@ -54,18 +54,18 @@ chains_well_with:
   - "student-learning/transfer-bridge"
   - "student-learning/srl-session-wrapper"
   - "student-learning/weekly-agency-review"
-tags: ["unassisted", "phantom-attainment", "independence", "evidence", "Bastani"]
+tags: ["unassisted", "assisted-unassisted-gap", "independence", "evidence", "Bastani"]
 ---
 
 # Unassisted Evidence Checkpoint
 
 ## What This Skill Does
 
-After scaffolded practice, schedules and administers an unassisted check — a problem or question the learner must attempt with absolutely no AI help, hints, or scaffolding. The result is tagged as `assistance_tag: unassisted` in the evidence record. This is the direct operationalisation of the Bastani guardrail: Bastani et al. (2025) found that students who used GPT-4 freely on practice problems performed 17% worse on subsequent unassisted assessments compared to students who practised without AI. The unassisted checkpoint separates what the learner can do *with* the AI from what they can do *without* it — which is what matters for actual exams and independent transfer.
+After scaffolded practice, schedules and administers an unassisted check — a problem or question the learner must attempt with absolutely no AI help, hints, or scaffolding. The result is tagged as `assistance_tag: unassisted` in the evidence record. Bastani et al. (2025) found that students with unguarded GPT-4 access performed better during assisted practice but 17% worse than the control group on a subsequent unassisted exam. This checkpoint applies the broader implication that assisted and unassisted performance should be recorded separately. It is a design extrapolation from the study, not a guardrail tested by Bastani et al. The result is one data point about current independent performance; it does not by itself establish durable learning or transfer.
 
 ## Evidence Foundation
 
-Bastani et al. (2025), published in the Proceedings of the National Academy of Sciences, ran a controlled study with high school students learning algebra. One group had free access to GPT-4 for problem-solving assistance; another did not. The GPT-4 group performed significantly better on AI-assisted practice but 17% worse on subsequent unassisted assessments. The mechanism: students who could always access help offloaded the cognitive work of problem-solving to the AI rather than building independent competence — what the authors term "phantom attainment." A third group in the study that used an AI tutor which required attempts before hints (a retrieval-first approach) did not show this performance degradation, suggesting the issue is not AI use per se but AI use without cognitive engagement. Koedinger & Aleven (2007) identified the "assistance dilemma" in intelligent tutoring systems: providing help makes learning easier in the moment but reduces the effortful processing that produces durable learning. Their work showed that the optimal point is less help than students prefer. Roediger & Karpicke (2006) and Bjork et al. (2013) establish the mechanism: independent retrieval, without support, is what strengthens the memory trace. Assisted retrieval produces less benefit because the cognitive work of reconstruction is shared with the cue-giver.
+Bastani et al. (2025), published in the Proceedings of the National Academy of Sciences, ran a randomized controlled trial with nearly 1,000 secondary students studying mathematics in Turkey. Students with access to an unguarded GPT-4 interface performed 48% better than the control group during assisted practice but 17% worse on the subsequent unassisted exam. The authors describe students using GPT-4 as a "crutch" by asking for and copying solutions. A third group used GPT Tutor, which was prompted to withhold full answers, provide incremental teacher-designed hints, and use teacher-provided solutions and common-error guidance. This group performed 127% better than the control group during assisted practice and was statistically indistinguishable from the control group on the unassisted exam. The study therefore supports distinguishing performance with AI from later performance without it, but it did not test this checkpoint protocol, long-term retention, or broad transfer. Koedinger & Aleven (2007) frame the related "assistance dilemma": support that improves immediate performance may not optimize learning. Roediger & Karpicke (2006) and Bjork et al. (2013) provide broader support for unassisted retrieval and for checking perceived learning against performance. Together, these sources support the rationale for an independent check while leaving this exact AI-mediated implementation to be validated.
 
 ## System Prompt
 
@@ -118,12 +118,12 @@ After submission, ask for post-attempt confidence: "How do you feel about that n
 
 Evaluate the attempt:
 - Compare to scaffolded session performance
-- Identify what transferred and what didn't
+- Identify which elements carried over from scaffolded practice and which did not
 - Tag the result: assistance_tag = unassisted
 
 Then deliver the comparison honestly:
 
-If unassisted performance is similar to scaffolded performance: "You got this without help. That's real learning — you didn't just understand it with support, you can do it independently. [Name what they got right.] This is worth remembering when you're calibrating how ready you are for an exam."
+If unassisted performance is similar to scaffolded performance: "You got this problem right without help. That's useful evidence that you can currently apply this independently here. [Name what they got right.] Let's see whether that holds over time and on other problems."
 
 If unassisted performance is notably weaker than scaffolded performance: "This is the most important result of the session. You did [description] with support, but without it you found [description] harder. That gap between assisted and unassisted performance — that's exactly what Bastani and colleagues documented: the risk of AI-assisted study is doing well when the AI is there but not being able to do it when it isn't. What felt different working alone?"
 
@@ -149,7 +149,7 @@ Learner asks for help during unassisted window: Firm redirect as above. Do not n
 
 Learner does poorly on unassisted check after strong scaffolded performance: This is the skill's highest-value output. Respond with genuine interest: "Interesting — you did well with support but found this harder alone. That's important information. What felt different?" Avoid making the learner feel the gap is a failure.
 
-Learner does very well on unassisted check: Celebrate genuinely: "You got this without help. That's real learning." Then advance: "Let's see if it holds on a harder version — or a different context."
+Learner does very well on unassisted check: Celebrate genuinely: "You got this problem right without help. That's strong evidence for this attempt." Then advance: "Let's see if it holds on a harder version, in a different context, or after a delay."
 
 Learner is distressed by performing poorly without AI help: "I want to be clear: doing worse without the AI is normal when you're still building a skill. The point of this checkpoint isn't to make you feel bad — it's to show us exactly where to focus. You now know precisely what needs more practice."
 
