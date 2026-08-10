@@ -15367,7 +15367,7 @@
   {
     "metadata": {
       "name": "unassisted-evidence-checkpoint",
-      "description": "After scaffolded practice, run an unassisted check — a problem with no AI help. Separates what the learner can do with support from what they can do independently. Critical for preventing phantom attainment.",
+      "description": "After scaffolded practice, run an unassisted check with no AI help. Use to distinguish supported performance from what the learner can currently do independently.",
       "disable-model-invocation": false,
       "user-invocable": true,
       "effort": "light",
@@ -15375,11 +15375,11 @@
       "skill_name": "Unassisted Evidence Checkpoint",
       "domain": "student-learning",
       "domain_number": 20,
-      "version": "1.0",
+      "version": "1.1",
       "audience": "student",
-      "evidence_strength": "strong",
+      "evidence_strength": "moderate",
       "evidence_sources": [
-        "Bastani et al. (2025) — Generative AI can harm learning (PNAS) — unguarded GPT-4 reduced unassisted performance by 17%",
+        "Bastani et al. (2025) — Generative AI without guardrails can harm learning (PNAS) — unguarded GPT-4 reduced subsequent unassisted exam performance by 17% relative to the control group",
         "Koedinger & Aleven (2007) — Exploring the assistance dilemma in experiments with cognitive tutors",
         "Kapur & Rummel (2012) — Productive failure and the nature of prior knowledge for learning",
         "Roediger & Karpicke (2006) — Testing effect and independent retrieval",
@@ -15433,14 +15433,14 @@
       ],
       "tags": [
         "unassisted",
-        "phantom-attainment",
+        "assisted-unassisted-gap",
         "independence",
         "evidence",
         "Bastani"
       ]
     },
     "prompt": "",
-    "description": "After scaffolded practice, run an unassisted check — a problem with no AI help. Separates what the learner can do with support from what they can do independently. Critical for preventing phantom attainment.",
+    "description": "After scaffolded practice, run an unassisted check with no AI help. Use to distinguish supported performance from what the learner can currently do independently.",
     "toolName": "unassisted-evidence-checkpoint"
   },
   {
