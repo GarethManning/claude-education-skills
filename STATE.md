@@ -1,19 +1,22 @@
 # State — Education Agent Skills Library
 
-## Last updated: 2026-05-27
+## Last updated: 2026-08-03
 
 ## What was done this session
 
-Built and shipped Domain 20: Student-Facing Learning Skills — 13 new skills in a new domain `student-learning`.
+Prepared an educator-first GitHub entry experience on `codex/github-educator-entry`:
 
-All 13 skills: retrieve-first-gate, explain-first-interrogator, progressive-hint-ladder, confidence-calibration-check, stuck-and-error-diagnosis-coach, ai-claim-checker, transfer-bridge, teach-back-evaluator, productive-failure-protocol, srl-session-wrapper, unassisted-evidence-checkpoint, weekly-agency-review, fading-manager.
+- Reframed the README opening around two routes: educators and school leaders, and AI/EdTech builders.
+- Added `docs/EDUCATOR_QUICKSTART.md` with entry points for a lesson, unit/project, curriculum/programme, and whole-school learning-model redesign.
+- Added issue forms, a pull-request template, and a project-specific community code of conduct.
+- Preserved all 165 skill files, evidence metadata, registry data, and MCP bundle unchanged.
 
 ## What was verified
 
-- All 20 Playwright tests pass (was 18 before, 2 new skills-library tests were already in suite)
-- registry.json regenerated: 165 skills, 20 domains
-- mcp-server/src/skills.json rebundled: 165 skills
-- Committed and pushed: d84b8f4
+- `npm test`: 21 tests passed.
+- All three GitHub issue-form YAML files parse successfully.
+- `git diff --check` passes.
+- Every skill name referenced in the educator quick start resolves to an existing skill directory.
 
 ## Current library state
 
@@ -22,8 +25,13 @@ All 13 skills: retrieve-first-gate, explain-first-interrogator, progressive-hint
 - Domain 20 introduces `evidence_captured` YAML schema extension for structured learning evidence
 - `generate-registry.py` updated with "student-learning" in DOMAIN_LABELS
 
+## Still to decide
+
+- Licensing needs an explicit owner decision before adding or changing legal files: the educational content is described as CC BY-SA 4.0 while the software package declares ISC.
+- A first formal GitHub release and custom social-preview image should follow after the licence and release boundary are confirmed.
+
 ## What's next
 
-- Downstream: Kaku's Tutor Agent and Hippo can now reference Domain 20 skills
-- Consider building a cross-domain orchestrator skill that chains Domain 20 skills (e.g., 20-01 → 20-04 → 20-11 sequence)
-- QA evaluator session (separate Claude invocation) recommended before production use of Domain 20 skills
+- Review and merge the educator-entry pull request.
+- Test the educator quick-start prompts with novice teachers, experienced educators who are new to AI, curriculum leaders, and whole-school designers.
+- Use those results to improve skill discovery, context gathering, and scenario-specific orchestration.

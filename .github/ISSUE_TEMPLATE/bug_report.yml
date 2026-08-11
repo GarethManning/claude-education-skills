@@ -1,0 +1,46 @@
+name: Report a problem
+description: Tell us about a reproducible problem in a skill, the library, or its tooling.
+title: "[Problem]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for helping improve the library. Do not include student names, private school information, API keys, or access tokens.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where is the problem?
+      options:
+        - A specific education skill
+        - Documentation or educator guidance
+        - Installation or plugin packaging
+        - Hosted MCP service
+        - Registry, tests, or developer tooling
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: skill
+    attributes:
+      label: Skill or file
+      description: Add the skill name, path, or page if one is involved.
+  - type: textarea
+    id: observed
+    attributes:
+      label: What happened?
+      description: Explain what you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How can we reproduce it?
+      description: Include the minimum safe example needed to see the problem. Remove private or identifying information.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Relevant context
+      description: AI tool, installation method, browser or operating system, and anything else that may matter.
