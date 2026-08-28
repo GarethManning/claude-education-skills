@@ -67,13 +67,17 @@ The `chains_well_with` field in every skill's YAML header provides explicit chai
 
 ## MCP Server
 
-An MCP server exposes the full skill library as callable tools and prompts. Any MCP-compatible client can discover all 165 skills, read their input requirements, call them with structured parameters, and receive typed outputs — removing the manual copy-paste step entirely.
+An MCP server exposes the full skill library as prompts plus the model-invocable subset as callable tools. Any MCP-compatible client can discover all 165 prompts and 157 tools, read their input requirements, and use strict typed inputs.
 
 **Production URL:** `https://mcp-server-sigma-sooty.vercel.app/mcp`
 
-The server registers each skill twice — as an MCP tool (for Claude.ai and orchestrator use) and as an MCP prompt (for clients that surface prompts in their UI). Four meta-tools provide discovery: `list_skills`, `find_skills`, `suggest_skills`, and `get_skill_details`.
+The server registers all 165 skills as prompts. It registers 153 skills as tools; the 12 skills marked `disable-model-invocation: true` remain available for discovery and explicit prompt use but are not model-invoked tools. Four additional meta-tools provide discovery: `list_skills`, `find_skills`, `suggest_skills`, and `get_skill_details`, for 157 tools total.
 
-Source code and setup instructions: [`mcp-server/`](mcp-server/)
+The hosted surface is access-controlled. It requires a configured canonical public origin and strong token/OAuth secrets, accepts bearer credentials only in the `Authorization` header, requires S256 PKCE and exact approved redirects, and uses encrypted short-lived authorization and refresh credentials. New access tokens expire after 30 days; deployed legacy signed/hash/plain credentials remain compatible. A SHA-256 revocation list supports individual credential revocation without rotating the signing secret.
+
+The server is stateless across instances. Request bodies are bounded (16 KiB for OAuth/access requests and 1 MiB for MCP), while authorization-code/refresh replay detection and access-request abuse limits are bounded in-memory controls. They reduce same-instance replay and abuse but cannot guarantee cross-instance single use without durable shared state.
+
+Source code and setup instructions: [`mcp-server/`](../mcp-server/)
 
 ---
 

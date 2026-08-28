@@ -4,12 +4,14 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFileSync } from "node:fs";
+import { createServer } from "../src/server.js";
+import type { LoadedSkill } from "../src/types.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SERVER_SCRIPT = resolve(__dirname, "../dist/index.js");
 const bundledSkills = JSON.parse(
   readFileSync(resolve(__dirname, "../src/skills.json"), "utf-8"),
-) as Array<{ metadata: { domain: string } }>;
+) as LoadedSkill[];
 
 async function createClient(env?: Record<string, string>): Promise<Client> {
   const transport = new StdioClientTransport({
@@ -30,18 +32,30 @@ test.describe("MCP Server — Startup", () => {
     await client?.close();
   });
 
-  test("registers one tool and prompt per bundled skill plus meta tools", async () => {
+  test("registers 153 invocable skill tools plus 4 meta-tools and all 165 prompts", async () => {
     client = await createClient();
 
     const { tools } = await client.listTools();
     const metaTools = ["list_skills", "get_skill_details", "find_skills", "suggest_skills"];
-    expect(tools.length).toBe(bundledSkills.length + metaTools.length);
+    expect(bundledSkills).toHaveLength(165);
+    expect(bundledSkills.filter((skill) => skill.metadata["disable-model-invocation"])).toHaveLength(12);
+    expect(tools).toHaveLength(157);
     for (const name of metaTools) {
       expect(tools.find((t) => t.name === name)).toBeTruthy();
     }
 
     const { prompts } = await client.listPrompts();
-    expect(prompts.length).toBe(bundledSkills.length);
+    expect(prompts).toHaveLength(165);
+    for (const skill of bundledSkills.filter((candidate) => candidate.metadata["disable-model-invocation"])) {
+      expect(tools.some((tool) => tool.name === skill.toolName)).toBe(false);
+      expect(prompts.some((prompt) => prompt.name === skill.toolName)).toBe(true);
+    }
+  });
+
+  test("rejects malformed bundled data at runtime before registration", () => {
+    const malformed = structuredClone(bundledSkills);
+    malformed[0].prompt = "";
+    expect(() => createServer(malformed)).toThrow(/prompt must be a non-empty string/);
   });
 });
 
@@ -79,6 +93,16 @@ test.describe("MCP Server — list_skills", () => {
     expect(text).toContain("## memory-learning-science");
     expect(text).not.toContain("## curriculum-assessment");
     expect(text).toContain("Cognitive Load Analyser");
+  });
+
+  test("renders missing teacher time as documented absence", async () => {
+    const result = await client.callTool({
+      name: "list_skills",
+      arguments: { domain: "student-learning" },
+    });
+    const text = (result.content as Array<{ type: string; text: string }>)[0].text;
+    expect(text).toContain("Time: not specified");
+    expect(text).not.toContain("Time: undefined");
   });
 });
 
@@ -170,6 +194,38 @@ test.describe("MCP Server — skill tools", () => {
     // No domain-prefixed (collision) form should remain.
     expect(tools.some((t) => t.name.includes("__"))).toBe(false);
   });
+
+  test("publishes strict scalar JSON schemas without string coercion", async () => {
+    const { tools } = await client.listTools();
+    const integerTool = tools.find((tool) => tool.name === "ai-socratic-dialogue-designer")!;
+    const booleanTool = tools.find((tool) => tool.name === "ai-learning-boundary-mapper")!;
+    const integerProperties = (integerTool.inputSchema as { properties: Record<string, { type: string }> }).properties;
+    const booleanProperties = (booleanTool.inputSchema as { properties: Record<string, { type: string }> }).properties;
+    expect(integerProperties.rounds.type).toBe("integer");
+    expect(booleanProperties.tool_comparison_needed.type).toBe("boolean");
+
+    const integerError = await client.callTool({
+      name: "ai-socratic-dialogue-designer",
+      arguments: {
+        interrogation_topic: "A claim",
+        student_level: "Year 10",
+        rounds: "4",
+      },
+    });
+    expect(integerError.isError).toBe(true);
+    expect((integerError.content as Array<{ text: string }>)[0].text).toContain("Expected number, received string");
+
+    const booleanError = await client.callTool({
+      name: "ai-learning-boundary-mapper",
+      arguments: {
+        assignment_description: "An essay",
+        learning_objectives: "Construct an argument",
+        tool_comparison_needed: "false",
+      },
+    });
+    expect(booleanError.isError).toBe(true);
+    expect((booleanError.content as Array<{ text: string }>)[0].text).toContain("Expected boolean, received string");
+  });
 });
 
 test.describe("MCP Server — skill prompts", () => {
@@ -241,12 +297,12 @@ test.describe("MCP Server — SKILLS_FILTER", () => {
     const metaTools = ["list_skills", "get_skill_details", "find_skills", "suggest_skills"];
     const skillTools = tools.filter((t) => !metaTools.includes(t.name));
     expect(skillTools.length).toBeGreaterThan(0);
-    expect(skillTools.length).toBeLessThan(131);
+    expect(skillTools.length).toBeLessThan(153);
 
     // Prompts should be filtered too
     const { prompts } = await client.listPrompts();
     expect(prompts.length).toBeGreaterThan(0);
-    expect(prompts.length).toBeLessThan(131);
+    expect(prompts.length).toBeLessThan(165);
 
     // Verify via list_skills that only filtered domains appear
     const result = await client.callTool({ name: "list_skills", arguments: {} });

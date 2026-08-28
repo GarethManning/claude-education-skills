@@ -21,15 +21,15 @@
     "dev": "tsx src/index.ts",
     "test": "playwright test"
   },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.12.1",
-    "gray-matter": "^4.0.3",
-    "zod": "^3.24.4"
-  },
   "devDependencies": {
-    "@playwright/test": "^1.58.2",
-    "@types/node": "^22.15.3",
-    "tsx": "^4.19.4",
-    "typescript": "^5.8.3"
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^22.20.1",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "gray-matter": "^4.0.3",
+    "zod": "^3.25.76"
   }
 }

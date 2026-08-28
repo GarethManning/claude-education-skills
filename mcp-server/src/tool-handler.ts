@@ -47,7 +47,7 @@ export function handleListSkills(
     lines.push(`## ${d}\n`);
     for (const s of domainSkills) {
       lines.push(
-        `- **${s.metadata.skill_name}** (${s.toolName})\n  Evidence: ${s.metadata.evidence_strength} | Time: ${s.metadata.teacher_time} | Tags: ${s.metadata.tags.join(", ")}`,
+        `- **${s.metadata.skill_name}** (${s.toolName})\n  Evidence: ${s.metadata.evidence_strength} | Time: ${s.metadata.teacher_time ?? "not specified"} | Tags: ${s.metadata.tags.join(", ")}`,
       );
     }
     lines.push("");
@@ -76,7 +76,7 @@ export function handleGetSkillDetails(
     version: m.version,
     evidence_strength: m.evidence_strength,
     evidence_sources: m.evidence_sources,
-    teacher_time: m.teacher_time,
+    teacher_time: m.teacher_time ?? "not specified",
     tags: m.tags,
     chains_well_with: m.chains_well_with,
     input_schema: m.input_schema,

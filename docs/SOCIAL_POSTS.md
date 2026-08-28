@@ -1,10 +1,10 @@
 # Social posts: hosted MCP transition
 
-Use these after the README and hosted-access page are live. The hosted MCP access request form has been created and tested.
+Use these only after the self-hosted access page and repaired hosted MCP candidate are promoted and verified on the production domain.
 
 ## LinkedIn
 
-I built the Education Agent Skills Library as a free, open-source set of 131 evidence-based teaching and curriculum design skills for AI tools.
+I built the Education Agent Skills Library as a free, open-source set of 165 evidence-based teaching and curriculum design skills for AI tools.
 
 It works with Claude, Codex, and any tool that can read Agent Skills-style `SKILL.md` files. The goal has always been simple: make high-quality, research-grounded education design more accessible.
 
@@ -18,12 +18,12 @@ So I’m making a small change in how I talk about and support it:
 - Codex users can use the local plugin or copy skills into `~/.codex/skills/`.
 - Claude Code users can install the plugin from GitHub.
 - Anyone can still copy a `SKILL.md` file and paste it into Claude, ChatGPT, Codex, or another assistant.
-- If your workflow specifically needs hosted MCP, I’m collecting access requests so I can understand demand and keep it sustainable.
+- If your workflow specifically needs hosted MCP, the self-hosted access page issues an individual expiring credential and applies abuse limits.
 
 This is not a paywall on the knowledge. It is a practical boundary around the hosted infrastructure.
 
 Repo: https://github.com/GarethManning/education-agent-skills
-Hosted MCP access request: https://docs.google.com/forms/d/e/1FAIpQLSdW1EdcmtjSPPq68Hx-bdth5hO2KNyjhAwEV9Ld0EwWL1Gr8Q/viewform
+Hosted MCP access request: https://mcp-server-sigma-sooty.vercel.app/request-access
 
 If you were using the hosted MCP endpoint and the local options do not work for you, tell me. I’d rather understand real use cases before making a permanent decision.
 
@@ -31,7 +31,7 @@ If you were using the hosted MCP endpoint and the local options do not work for 
 
 1/ I need to make a small sustainability change to the Education Agent Skills Library.
 
-The library is still free + open source: 131 evidence-based education skills for Claude, Codex, and other AI tools.
+The library is still free + open source: 165 evidence-based education skills for Claude, Codex, and other AI tools.
 
 Repo: https://github.com/GarethManning/education-agent-skills
 
@@ -49,9 +49,9 @@ The skills are free. The hosting is not.
 
 No hosted server required.
 
-4/ If your workflow specifically depends on hosted MCP, I’m collecting access requests so I can understand demand and keep it sustainable.
+4/ If your workflow specifically depends on hosted MCP, the self-hosted access page issues an individual expiring credential with abuse limits.
 
-Hosted MCP request: https://docs.google.com/forms/d/e/1FAIpQLSdW1EdcmtjSPPq68Hx-bdth5hO2KNyjhAwEV9Ld0EwWL1Gr8Q/viewform
+Hosted MCP request: https://mcp-server-sigma-sooty.vercel.app/request-access
 
 5/ I’m trying to avoid the usual bad open-source pattern:
 
@@ -65,7 +65,7 @@ Small update: Education Agent Skills stays free + open source, but the hosted MC
 
 Please use local install where possible.
 
-Hosted MCP request: https://docs.google.com/forms/d/e/1FAIpQLSdW1EdcmtjSPPq68Hx-bdth5hO2KNyjhAwEV9Ld0EwWL1Gr8Q/viewform
+Hosted MCP request: https://mcp-server-sigma-sooty.vercel.app/request-access
 
 Repo: https://github.com/GarethManning/education-agent-skills
 
@@ -75,7 +75,7 @@ Repo: https://github.com/GarethManning/education-agent-skills
 
 When I published the Education Agent Skills Library, I wanted it to be useful in as many AI environments as possible.
 
-The library now contains 131 evidence-based education skills: curriculum design, assessment, learning science, wellbeing, historical thinking, AI literacy, professional learning, and more. Each skill is a structured `SKILL.md` file grounded in named research and designed to be usable by AI agents.
+The library now contains 165 evidence-based education skills: curriculum design, assessment, learning science, wellbeing, historical thinking, AI literacy, professional learning, and more. Each skill is a structured `SKILL.md` file grounded in named research and designed to be usable by AI agents.
 
 The important part: the library is free and open source.
 
@@ -122,15 +122,15 @@ That is not sustainable.
 
 ## What I am doing next
 
-I am documenting the free local options clearly and collecting hosted MCP access requests.
+I am documenting the free local options clearly and using a self-hosted page to issue individual hosted MCP credentials.
 
-The access form is intentionally short. I do not need your phone number, income, school address, or student data. I only need to know which tool you are using, whether you really need hosted MCP, and what you are trying to do.
+The access page is intentionally short. I do not need your phone number, income, school address, or student data. It requires an email address so the credential can be delivered; name and tool are optional. The optional use-case text is discarded rather than added to a database.
 
 If the local options work for you, please use them.
 
 If hosted MCP is essential to your workflow, request access here:
 
-https://docs.google.com/forms/d/e/1FAIpQLSdW1EdcmtjSPPq68Hx-bdth5hO2KNyjhAwEV9Ld0EwWL1Gr8Q/viewform
+https://mcp-server-sigma-sooty.vercel.app/request-access
 
 ## The principle
 

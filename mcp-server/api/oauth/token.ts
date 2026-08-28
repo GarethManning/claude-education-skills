@@ -1,46 +1,91 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
-import { createRefreshToken, verifyAuthorizationCode, verifyRefreshToken } from "../../src/oauth.js";
+import type { ServerResponse } from "node:http";
+import {
+  createSignedAccessToken,
+  getSignedAccessTokenExpiresInSeconds,
+} from "../../src/http-auth.js";
+import {
+  assertHostedMcpConfigured,
+  createRefreshToken,
+  verifyAuthorizationCode,
+  verifyRefreshToken,
+} from "../../src/oauth.js";
+import {
+  isInvalidRequestBody,
+  isRequestBodyTooLarge,
+  readFormBody,
+  SMALL_REQUEST_BODY_LIMIT_BYTES,
+  writeRequestBodyTooLarge,
+  type RequestWithBody,
+} from "../../src/request-body.js";
 
-async function readBody(req: IncomingMessage & { body?: unknown }): Promise<URLSearchParams> {
-  if (typeof req.body === "string") return new URLSearchParams(req.body);
-  if (req.body && typeof req.body === "object") return new URLSearchParams(req.body as Record<string, string>);
-  const chunks: Buffer[] = [];
-  for await (const chunk of req) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-  return new URLSearchParams(Buffer.concat(chunks).toString("utf8"));
-}
+export default async function handler(req: RequestWithBody, res: ServerResponse) {
+  res.setHeader("cache-control", "no-store");
+  try {
+    assertHostedMcpConfigured(process.env);
+  } catch {
+    writeJson(res, 503, { error: "hosted_mcp_unavailable" });
+    return;
+  }
 
-export default async function handler(req: IncomingMessage & { body?: unknown }, res: ServerResponse) {
   if (req.method !== "POST") {
     res.writeHead(405, { allow: "POST" });
     res.end("Method not allowed");
     return;
   }
 
-  const body = await readBody(req);
-  const grantType = body.get("grant_type") || "authorization_code";
+  let body: URLSearchParams;
+  try {
+    body = await readFormBody(req, SMALL_REQUEST_BODY_LIMIT_BYTES);
+  } catch (error) {
+    if (isRequestBodyTooLarge(error)) {
+      writeRequestBodyTooLarge(res, error);
+      return;
+    }
+    if (isInvalidRequestBody(error)) {
+      writeJson(res, 400, { error: "invalid_request" });
+      return;
+    }
+    throw error;
+  }
+
+  const grantType = body.get("grant_type");
   let accessToken: string | null = null;
 
   if (grantType === "authorization_code") {
-    const code = body.get("code") || "";
-    const verifier = body.get("code_verifier") || undefined;
-    const payload = verifyAuthorizationCode(code, verifier);
-    accessToken = payload?.token || null;
+    const payload = verifyAuthorizationCode(body.get("code") || "", {
+      verifier: body.get("code_verifier") || "",
+      redirectUri: body.get("redirect_uri") || "",
+      clientId: body.get("client_id") || "",
+    });
+    if (payload) accessToken = createSignedAccessToken(process.env);
   } else if (grantType === "refresh_token") {
-    accessToken = verifyRefreshToken(body.get("refresh_token") || "");
-  }
-
-  if (!accessToken) {
-    res.writeHead(400, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
-    res.end(JSON.stringify({ error: "invalid_grant" }));
+    const previousAccessToken = verifyRefreshToken(body.get("refresh_token") || "");
+    if (previousAccessToken) accessToken = createSignedAccessToken(process.env);
+  } else {
+    writeJson(res, 400, { error: "unsupported_grant_type" });
     return;
   }
 
-  res.writeHead(200, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
-  res.end(JSON.stringify({
+  if (!accessToken) {
+    writeJson(res, 400, { error: "invalid_grant" });
+    return;
+  }
+
+  const response: Record<string, unknown> = {
     access_token: accessToken,
     token_type: "Bearer",
-    expires_in: 60 * 60 * 24 * 30,
     refresh_token: createRefreshToken(accessToken),
     scope: "mcp",
-  }));
+  };
+  const expiresIn = getSignedAccessTokenExpiresInSeconds(accessToken);
+  if (expiresIn !== undefined) response.expires_in = expiresIn;
+  writeJson(res, 200, response);
+}
+
+function writeJson(res: ServerResponse, status: number, body: Record<string, unknown>): void {
+  res.writeHead(status, {
+    "content-type": "application/json; charset=utf-8",
+    "cache-control": "no-store",
+  });
+  res.end(JSON.stringify(body));
 }

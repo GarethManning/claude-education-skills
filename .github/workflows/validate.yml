@@ -4,12 +4,18 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
       - name: Install dependencies
-        run: pip install pyyaml
+        run: |
+          pip install pyyaml
+          npm ci
       - name: Count skills
         run: |
           FOUND=$(find skills/ -name "SKILL.md" | wc -l | tr -d ' ')
@@ -24,11 +30,15 @@ jobs:
         run: |
           python3 scripts/generate-registry.py
           git diff --ignore-matching-lines='"generated"' --exit-code registry.json || (echo "registry.json is out of sync — run scripts/generate-registry.py" && exit 1)
+      - name: Run skills library tests
+        run: npm test
+      - name: Audit root dependencies
+        run: npm audit --audit-level=high
 
   bundle-sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -41,3 +51,11 @@ jobs:
       - name: Check bundle is in sync
         run: |
           git diff --exit-code mcp-server/src/skills.json || (echo "mcp-server/src/skills.json is out of sync — run: cd mcp-server && npm run bundle-skills" && exit 1)
+      - name: Build and test MCP server
+        working-directory: mcp-server
+        run: |
+          npm run build
+          npm test
+      - name: Audit MCP dependencies
+        working-directory: mcp-server
+        run: npm audit --audit-level=high

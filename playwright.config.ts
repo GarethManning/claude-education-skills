@@ -5,6 +5,6 @@ export default defineConfig({
   timeout: 30000,
   retries: 0,
   use: {
-    baseURL: "https://mcp-server-sigma-sooty.vercel.app",
+    baseURL: process.env.HOSTED_MCP_BASE_URL,
   },
 });

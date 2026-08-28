@@ -8,10 +8,10 @@ This hosted endpoint is a convenience for clients that specifically need remote 
 
 ## Architecture
 
-Skills are registered **twice** — as both MCP tools and MCP prompts:
+All skills are registered as prompts. Skills that permit model invocation are also registered as tools:
 
-- **Tools** (169 total: 165 skills + 4 meta) — work in Claude.ai and any MCP client. The calling Claude model receives the assembled skill prompt via instruction framing and generates the output.
-- **Prompts** (165) — ready for Claude Desktop and future clients that surface MCP prompts in their UI. The prompt is injected into the conversation as a user message.
+- **Tools** (157 total: 153 skills + 4 meta) — work in Claude.ai and any MCP client. The 12 skills marked `disable-model-invocation: true` are deliberately not tools.
+- **Prompts** (165) — all skills remain discoverable and available for explicit prompt use, including the 12 that are not model-invoked tools.
 
 ### Meta-tools (always available as tools)
 
@@ -83,6 +83,18 @@ npm run bundle-skills # Re-generate src/skills.json for Vercel deployment
 | Variable | Description |
 |----------|-------------|
 | `SKILLS_FILTER` | Comma-separated domain names to limit which domains are loaded. Omit for all 20 domains. |
+| `MCP_PUBLIC_BASE_URL` | Required canonical HTTPS origin for hosted endpoints, for example `https://mcp-server-sigma-sooty.vercel.app`. Request `Host` headers are never trusted. |
+| `MCP_TOKEN_SIGNING_SECRET` | Required random secret of at least 32 bytes for newly issued, 30-day access tokens. Existing signed tokens remain compatible. |
+| `MCP_OAUTH_SIGNING_SECRET` | Optional separate random OAuth key of at least 32 bytes. New OAuth credentials use it; verification also accepts the token-signing key so existing refresh credentials continue to work. |
+| `MCP_OAUTH_REDIRECT_URIS` | Optional comma/newline-separated exact redirect allowlist in addition to the Claude callback. |
+| `MCP_REVOKED_TOKEN_HASHES` | Optional comma/newline-separated SHA-256 hashes of individual access or refresh credentials to revoke without rotating a global secret. |
+| `MCP_ACCESS_TOKEN_HASHES` / `MCP_ACCESS_TOKENS` | Compatibility inputs for existing manually issued hashed/plain tokens. New issuance uses expiring signed tokens. |
+| `RESEND_API_KEY` | Required for the hosted access-email endpoint. Provider failures return an error and do not expose provider details, requester data, or credential fragments. |
+| `MCP_FROM_EMAIL` | Optional verified sender address for access email. |
+
+Hosted OAuth requires S256 PKCE and an approved callback. Authorization codes are encrypted, authenticated, bound to the client and redirect, expire after 10 minutes, and are rejected on replay within the serving instance. New refresh credentials are encrypted, expire after 30 days, and rotate on use. Bearer credentials are accepted only through the `Authorization` header.
+
+The implementation has no paid or durable shared store. Rate limits and single-use replay caches are therefore strongest-effort per serverless instance; a replay routed to a separate live instance cannot be ruled out. The short lifetimes, encryption, PKCE binding, exact redirects, credential rotation, and individual revocation list reduce this residual without pretending it is globally stateful.
 
 ## How skill tools work
 

@@ -2,151 +2,50 @@
 
 The Education Agent Skills Library is free and open source. The hosted MCP server is a convenience endpoint for remote clients that cannot install the skills locally.
 
-If you can use the skills locally, please do that first. Local use costs nothing to host, keeps the project sustainable, and avoids routing your work through the public MCP server.
+If local use works for your client, prefer it: local use costs nothing to host and does not route your teaching context through the public MCP service.
 
-## What is changing?
+## Free alternatives
 
-The public hosted MCP endpoint has created real infrastructure costs because anonymous remote clients can open long-lived connections. Those connections are useful for some MCP workflows, but they are not free to run at public scale.
+- Install the repository as a Claude, Codex, or Hermes plugin.
+- Copy an individual `SKILL.md` prompt into any assistant.
+- Clone the repository and run the MCP server locally over stdio.
 
-The plan is to keep the library free while moving hosted MCP access toward a more sustainable model:
+See the [main setup guide](../README.md) and [local MCP instructions](../mcp-server/README.md).
 
-- Local plugin use remains free.
-- Manual copy-paste use remains free.
-- The GitHub repository remains open.
-- Hosted MCP is access-controlled with unique tokens and may be rate-limited so the service stays sustainable.
+## Request hosted access
 
-## Free alternatives to hosted MCP
-
-### Claude
-
-Use the Claude plugin route where available:
+Use the self-hosted request page:
 
 ```text
-https://github.com/GarethManning/education-agent-skills
+https://mcp-server-sigma-sooty.vercel.app/request-access
 ```
 
-Or install with Claude Code:
+The page asks for:
 
-```bash
-claude plugin install https://github.com/GarethManning/education-agent-skills
-```
+- email address (required, to deliver the credential);
+- name (optional);
+- MCP client/tool (optional); and
+- a short use case (optional — do not include student data or confidential school information).
 
-### OpenAI Codex
+If the email provider accepts the request, the page reports success and the email contains the MCP URL, an access token, and setup instructions. If configuration or email delivery fails, the page reports failure; it does not return provider details, the requester email, the token, or a token prefix.
 
-Use the local Codex plugin or copy individual skills locally. See [CODEX.md](CODEX.md).
+## Authentication and credential behavior
 
-### Any AI tool
+- Hosted MCP rejects anonymous requests and accepts bearer credentials only through the `Authorization` header. Do not put tokens in URLs.
+- Claude connections use an OAuth authorization-code flow with the existing Claude callback, exact redirect approval, and mandatory S256 PKCE.
+- New access tokens expire after 30 days. Existing signed, hashed, and plain credentials remain accepted for compatibility unless individually revoked.
+- New authorization codes are encrypted, authenticated, client/redirect-bound, and expire after 10 minutes.
+- New refresh credentials are encrypted, expire after 30 days, and rotate when used. Refresh credentials from the previous signed format remain compatible.
+- An individual access or refresh credential can be revoked by adding its SHA-256 hash to `MCP_REVOKED_TOKEN_HASHES`; this does not require global secret rotation or reconnecting everyone else.
 
-Open any `SKILL.md` file under `skills/`, copy the instructions, and paste them into Claude, ChatGPT, Codex, Gemini, or another assistant with your teaching context.
+The server deliberately has no paid or durable shared state. Same-instance authorization-code/refresh replay is rejected, and the access form applies bounded global/IP/email controls using keyed fingerprints rather than plain email keys. Serverless instances do not share those in-memory maps, so cross-instance single-use enforcement and globally durable rate limiting remain an explicit residual.
 
-### Local MCP
+## Request limits and privacy
 
-Clone the repository and run the MCP server locally if your client supports local MCP configuration. See [mcp-server/README.md](../mcp-server/README.md).
+OAuth and access-request bodies are limited to 16 KiB. MCP request bodies are limited to 1 MiB. Oversized requests receive HTTP 413, and hosted auth/access responses use `Cache-Control: no-store`.
 
-## Hosted MCP access signup
+The email address, optional name/tool, and credential are sent to the email provider so delivery can be attempted. The optional use-case text is length-checked in memory and discarded. The application does not add a user database or access-request sheet. Vercel and the email provider may process standard infrastructure/delivery data; see the [privacy policy](PRIVACY.md).
 
-Hosted MCP is mainly for people who cannot use local plugins or local skill files, or who are building a workflow that specifically depends on remote MCP discovery.
+## Service posture
 
-Request hosted MCP access here:
-
-```text
-https://docs.google.com/forms/d/e/1FAIpQLSdW1EdcmtjSPPq68Hx-bdth5hO2KNyjhAwEV9Ld0EwWL1Gr8Q/viewform
-```
-
-The form is intentionally short and respectful. It collects only what is needed to issue a unique token, understand real demand, and prevent abuse.
-
-After someone submits the form, Gareth's Agent normally:
-
-1. Generates a unique access token.
-2. Emails the requester the MCP URL, token, one-click token URL, and short setup instructions.
-3. Logs the request in the hosted access sheet.
-4. Notifies Gareth with a short summary.
-
-The hosted endpoint rejects anonymous requests. Free local/plugin/manual options remain available.
-
-Recommended fields:
-
-### Required
-
-1. **Email address** — needed to send an access link or token.
-2. **Which tool are you using?** — Claude.ai, Claude Desktop, Claude Code, Codex, custom MCP client, other.
-3. **Do you specifically need the hosted MCP endpoint?** — yes/no/not sure.
-4. **Brief use case** — one or two sentences about what you are trying to do.
-5. **Fair-use acknowledgement** — checkbox: “I understand hosted MCP has real infrastructure costs and I will use local/free options where they work for my workflow.”
-
-### Optional
-
-1. Name.
-2. Organisation or role.
-3. GitHub username.
-4. Whether you are happy to be contacted about your use case.
-
-### Do not ask
-
-- Phone number.
-- Exact income or budget.
-- Student names or student data.
-- School address.
-- Detailed lesson materials.
-- A long justification for why they “deserve” access.
-
-## Suggested form copy
-
-Title:
-
-> Education Agent Skills — Hosted MCP Access Signup
-
-Description:
-
-> The Education Agent Skills Library remains free and open source. For most people, the best free route is to install the skills locally from GitHub or use them manually from the `SKILL.md` files.
->
-> This form is only for people who specifically need the hosted MCP endpoint. Hosted MCP creates infrastructure costs, so I’m using this form to understand who depends on it and how to keep access sustainable.
->
-> After you submit, Gareth’s Agent will normally email you a unique access token and short setup instructions within a few minutes. Access is rate-limited and may be revoked if it is abused, so the hosted service stays sustainable.
->
-> Please do not include student data or confidential school information.
-
-Required questions:
-
-1. **Email address**
-   - Short answer
-   - Required
-
-2. **Which tool are you using?**
-   - Multiple choice
-   - Required
-   - Claude.ai
-   - Claude Desktop
-   - Claude Code
-   - OpenAI Codex
-   - ChatGPT or another OpenAI tool
-   - Custom MCP client
-   - Other / not sure
-
-3. **Do you specifically need the hosted MCP endpoint?**
-   - Multiple choice
-   - Required
-   - Yes — my workflow depends on remote MCP
-   - Not sure — I need help choosing the right setup
-   - No — I can probably use the local/free options
-
-4. **What are you trying to use the skills for?**
-   - Paragraph
-   - Required
-   - Helper text: “One or two sentences is enough. Please do not include student data.”
-
-5. **Fair-use acknowledgement**
-   - Checkbox
-   - Required
-   - “I understand hosted MCP has real infrastructure costs and I will use local/free options where they work for my workflow.”
-
-Optional questions:
-
-6. **Name**
-7. **Organisation or role**
-8. **GitHub username**
-9. **Are you happy for me to contact you about your use case?**
-
-## Tone note
-
-Avoid making people prove hardship. If someone cannot pay or needs help, let them explain that in the optional “anything else” field. The public message can say: “If hosted access is essential and the alternatives do not work for you, use the form and I’ll try to help.”
+Hosted access may be rate-limited or individually revoked to control abuse and infrastructure cost. Local plugin, local MCP, and manual use remain free and do not depend on hosted availability.
