@@ -4,15 +4,33 @@ export interface SchemaField {
   description: string;
 }
 
+export type InputFieldType = "string" | "array" | "integer" | "number" | "boolean";
+
+export interface InputSchemaField extends SchemaField {
+  type: InputFieldType;
+}
+
 export interface InputSchema {
-  required: SchemaField[];
-  optional?: SchemaField[];
+  required: InputSchemaField[];
+  optional?: InputSchemaField[];
 }
 
 export interface OutputSchema {
   type: string;
   fields: SchemaField[];
 }
+
+export const EVIDENCE_STRENGTHS = [
+  "strong",
+  "moderate",
+  "low-moderate",
+  "medium",
+  "emerging",
+  "original",
+  "practitioner",
+] as const;
+
+export type EvidenceStrength = (typeof EVIDENCE_STRENGTHS)[number];
 
 export interface SkillMetadata {
   // Agent Skills v2 fields
@@ -26,12 +44,12 @@ export interface SkillMetadata {
   skill_name: string;
   domain: string;
   version: string;
-  evidence_strength: "strong" | "moderate" | "emerging" | "original" | "practitioner";
+  evidence_strength: EvidenceStrength;
   evidence_sources: string[];
   input_schema: InputSchema;
-  output_schema: OutputSchema;
+  output_schema?: OutputSchema;
   chains_well_with: string[];
-  teacher_time: string;
+  teacher_time?: string;
   tags: string[];
 }
 
@@ -39,6 +57,6 @@ export interface LoadedSkill {
   metadata: SkillMetadata;
   prompt: string;
   description: string;
-  filePath: string;
+  filePath?: string;
   toolName: string;
 }

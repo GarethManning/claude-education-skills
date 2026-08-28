@@ -1,34 +1,40 @@
 # Privacy Policy — Education Agent Skills MCP Server
 
-**Last updated: 2 April 2026**
+**Last updated: 28 August 2026**
 
 ## Overview
 
-The Education Agent Skills MCP server is a read-only service that provides access to the Education Agent Skills Library. This policy explains what data the server does and does not collect.
+The Education Agent Skills MCP server is a read-only service that returns content and metadata from the open-source skill library. Hosted access is authenticated, and the optional access-request page uses an email provider to deliver a credential.
 
-## Data Collection
+## Data handled by the application
 
-This server collects no personal data. Specifically:
+For ordinary authenticated MCP calls, the application checks the bearer credential and processes the MCP request needed to return skill content. It does not create a user profile, write the teaching request to an application database, use cookies, or add analytics/tracking code.
 
-- It does not require authentication or user accounts
-- It does not log requests, queries, or usage patterns
-- It does not store any information about who is calling the server
-- It does not store any information about what users do with the results
-- It does not use cookies or tracking mechanisms
-- It does not share any data with third parties
+The hosted access-request page accepts:
 
-## How the Server Works
+- email address (required);
+- name (optional);
+- MCP client/tool (optional); and
+- short use case (optional).
 
-The server responds to MCP tool calls by returning skill content and metadata from the Education Agent Skills Library — a static, open-source collection of evidence-based pedagogical skills. Every tool is read-only. No user data is written, stored, or transmitted as a result of using this server.
+The email address, optional name/tool, and generated access credential are sent to the configured email provider for delivery. The optional use-case text is length-checked in memory and discarded; it is not included in the email or written to storage. The application does not add any of these fields to a spreadsheet or application database. Application responses and logs do not include the requester email, provider response details, access token, or token prefix. Do not submit student data or confidential school information.
 
-## Third-Party Services
+## Abuse controls and credentials
 
-The server is hosted on Vercel. Vercel's infrastructure may retain standard server logs (IP addresses, request timestamps) in accordance with [Vercel's Privacy Policy](https://vercel.com/legal/privacy-policy). These logs are not accessible to or controlled by the server author.
+The access-request endpoint derives keyed one-way fingerprints for global, IP, and email rate-limit buckets. Those bounded counters exist only in the memory of the serving serverless instance and expire; plain email addresses are not used as rate-limit map keys. Because instances do not share memory, this is best-effort rather than globally durable limiting.
 
-## Open Source
+Bearer credentials are accepted only in the `Authorization` header. New access and refresh credentials expire, and individual credentials can be revoked using a configured SHA-256 hash. OAuth/access responses are marked `Cache-Control: no-store`.
 
-The full source code for this server is available at [github.com/GarethManning/education-agent-skills](https://github.com/GarethManning/education-agent-skills). Anyone can inspect exactly what the server does.
+## Third-party services
+
+The server is hosted on Vercel. Vercel may process standard infrastructure data such as IP addresses, request timestamps, headers, and operational logs under [Vercel's Privacy Policy](https://vercel.com/legal/privacy-policy).
+
+Access email is sent through Resend. Resend processes the supplied email address and message-delivery data under [Resend's privacy policy](https://resend.com/legal/privacy-policy). The application does not claim control over retention performed by these infrastructure providers.
+
+## Open source
+
+The source code is available at [github.com/GarethManning/education-agent-skills](https://github.com/GarethManning/education-agent-skills).
 
 ## Contact
 
-For questions about this privacy policy or the Education Agent Skills Library, contact gareth.manning@gmail.com.
+For privacy questions, contact gareth.manning@gmail.com.

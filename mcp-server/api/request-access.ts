@@ -1,5 +1,15 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHmac } from "node:crypto";
+import { createSignedAccessToken } from "../src/http-auth.js";
+import { publicBaseUrl } from "../src/oauth.js";
+import {
+  isInvalidRequestBody,
+  isRequestBodyTooLarge,
+  readJsonBody,
+  SMALL_REQUEST_BODY_LIMIT_BYTES,
+  writeRequestBodyTooLarge,
+  type RequestWithBody,
+} from "../src/request-body.js";
 
 /**
  * Self-hosted MCP access request endpoint.
@@ -9,30 +19,13 @@ import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
  *        sends it via Resend, and returns JSON.
  *
  * Env vars:
- *   MCP_TOKEN_SIGNING_SECRET  — already set on Vercel (shared with http-auth.ts)
+ *   MCP_TOKEN_SIGNING_SECRET  — required random secret shared with http-auth.ts
  *   RESEND_API_KEY            — Resend API key (never expires, no OAuth)
  *   MCP_FROM_EMAIL            — optional, defaults to onboarding@resend.dev
  */
 
-const MCP_URL = "https://mcp-server-sigma-sooty.vercel.app/mcp";
 const PUBLIC_DOCS_URL = "https://github.com/GarethManning/education-agent-skills";
 const DEFAULT_FROM_EMAIL = "onboarding@resend.dev";
-const TOKEN_PREFIX_LENGTH = 18;
-
-// --- Token generation (mirrors Python make_token in mcp_access_agent_automation.py) ---
-
-function makeToken(env: Record<string, string | undefined>): string {
-  const secret = env.MCP_TOKEN_SIGNING_SECRET?.trim();
-  if (!secret) throw new Error("MCP_TOKEN_SIGNING_SECRET is not configured");
-
-  const payload = "eas_live_" + randomBytes(32).toString("base64url");
-  const signature = createHmac("sha256", secret).update(payload).digest("base64url");
-  return `${payload}.${signature}`;
-}
-
-function tokenPrefix(token: string): string {
-  return token.slice(0, TOKEN_PREFIX_LENGTH);
-}
 
 // --- Email via Resend ---
 
@@ -51,14 +44,14 @@ function clientInstruction(tool: string): string {
   );
 }
 
-function buildEmailBody(name: string, tool: string, token: string): string {
+function buildEmailBody(name: string, tool: string, token: string, mcpUrl: string): string {
   const greeting = name ? `Hi ${name},` : "Hi there,";
   return `${greeting}
 
 Thanks for requesting hosted MCP access for Education Agent Skills.
 
 MCP server URL:
-${MCP_URL}
+${mcpUrl}
 
 Access token:
 ${token}
@@ -82,10 +75,10 @@ async function sendEmailViaResend(
   subject: string,
   body: string,
   env: Record<string, string | undefined>,
-): Promise<{ success: boolean; id?: string; error?: string }> {
+): Promise<{ success: boolean }> {
   const apiKey = env.RESEND_API_KEY?.trim();
   if (!apiKey) {
-    return { success: false, error: "RESEND_API_KEY is not configured" };
+    return { success: false };
   }
 
   const fromEmail = env.MCP_FROM_EMAIL?.trim() || DEFAULT_FROM_EMAIL;
@@ -107,32 +100,81 @@ async function sendEmailViaResend(
     });
 
     if (!res.ok) {
-      const errText = await res.text();
-      return { success: false, error: `Resend API error ${res.status}: ${errText}` };
+      return { success: false };
     }
-
-    const data = await res.json() as { id?: string };
-    return { success: true, id: data.id };
-  } catch (err) {
-    return { success: false, error: `Fetch error: ${err instanceof Error ? err.message : String(err)}` };
+    return { success: true };
+  } catch {
+    return { success: false };
   }
 }
 
-// --- Simple in-memory rate limiting (per-instance, best-effort) ---
+// --- Bounded in-memory abuse controls (per-instance, best-effort) ---
 
 const rateLimitMap = new Map<string, { count: number; windowStart: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
-const RATE_LIMIT_MAX = 5; // 5 requests per hour per IP
+const RATE_LIMIT_MAX_ENTRIES = 10_000;
 
-function checkRateLimit(ip: string): boolean {
+function checkAccessRateLimit(
+  req: IncomingMessage,
+  email: string,
+  env: Record<string, string | undefined>,
+): boolean {
   const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
-    rateLimitMap.set(ip, { count: 1, windowStart: now });
-    return true;
+  const secret = env.MCP_TOKEN_SIGNING_SECRET!.trim();
+  const ip = clientIp(req);
+  const keys: Array<[string, number]> = [
+    [fingerprint("global", secret), 100],
+    [fingerprint(`ip:${ip}`, secret), 5],
+    [fingerprint(`email:${email}`, secret), 3],
+  ];
+
+  for (const [key, maximum] of keys) {
+    const entry = rateLimitMap.get(key);
+    if (entry && now - entry.windowStart <= RATE_LIMIT_WINDOW_MS && entry.count >= maximum) {
+      return false;
+    }
   }
-  entry.count++;
-  return entry.count <= RATE_LIMIT_MAX;
+  for (const [key] of keys) {
+    const entry = rateLimitMap.get(key);
+    if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
+      rateLimitMap.set(key, { count: 1, windowStart: now });
+    } else {
+      entry.count += 1;
+    }
+  }
+  if (rateLimitMap.size > RATE_LIMIT_MAX_ENTRIES) {
+    for (const [key, entry] of rateLimitMap) {
+      if (now - entry.windowStart > RATE_LIMIT_WINDOW_MS && !keys.some(([protectedKey]) => protectedKey === key)) {
+        rateLimitMap.delete(key);
+      }
+      if (rateLimitMap.size <= RATE_LIMIT_MAX_ENTRIES) break;
+    }
+    for (const key of rateLimitMap.keys()) {
+      if (rateLimitMap.size <= RATE_LIMIT_MAX_ENTRIES) break;
+      if (!keys.some(([protectedKey]) => protectedKey === key)) rateLimitMap.delete(key);
+    }
+  }
+  return true;
+}
+
+function clientIp(req: IncomingMessage): string {
+  const realIp = headerValue(req.headers["x-real-ip"]);
+  if (realIp) return realIp.trim();
+  const forwarded = headerValue(req.headers["x-forwarded-for"]);
+  if (forwarded) return forwarded.split(",").at(-1)?.trim() || "unknown";
+  return req.socket?.remoteAddress || "unknown";
+}
+
+function headerValue(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function fingerprint(value: string, secret: string): string {
+  return createHmac("sha256", secret).update(value).digest("base64url");
+}
+
+export function resetAccessRateLimitsForTests(): void {
+  rateLimitMap.clear();
 }
 
 // --- Email validation ---
@@ -215,7 +257,7 @@ const res=await fetch('/api/request-access',{method:'POST',headers:{'Content-Typ
 const json=await res.json();
 if(res.ok&&json.success){
 form.style.display='none';
-successMsg.innerHTML='<strong>Check your email!</strong> An access token and setup instructions have been sent to <strong>'+data.email+'</strong>. Look for an email from "Gareth\\'s Agent".';
+successMsg.textContent='Check your email. If delivery succeeds, it will contain your access token and setup instructions.';
 successMsg.style.display='block';
 }else{
 errorMsg.textContent=json.error||'Something went wrong. Please try again or email gareth.ai.agent@gmail.com.';
@@ -236,17 +278,27 @@ btn.textContent='Request access token';
 // --- Main handler ---
 
 export default async function handler(
-  req: IncomingMessage & { body?: unknown },
+  req: RequestWithBody,
   res: ServerResponse,
 ) {
-  // CORS
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "no-referrer");
 
   if (req.method === "OPTIONS") {
     res.writeHead(204);
     res.end();
+    return;
+  }
+
+  let baseUrl: string;
+  try {
+    baseUrl = publicBaseUrl(undefined, process.env);
+    if (!process.env.RESEND_API_KEY?.trim()) throw new Error("Email provider is not configured");
+  } catch {
+    res.writeHead(503, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+    res.end(JSON.stringify({ success: false, error: "Hosted access is temporarily unavailable. Please try again later." }));
     return;
   }
 
@@ -258,35 +310,34 @@ export default async function handler(
     return;
   }
 
+  if (!isTrustedRequestOrigin(req, baseUrl)) {
+    res.writeHead(403, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+    res.end(JSON.stringify({ success: false, error: "Request origin is not allowed" }));
+    return;
+  }
+
   if (req.method !== "POST") {
     res.writeHead(405, { allow: "GET, POST, OPTIONS" });
     res.end("Method not allowed");
     return;
   }
 
-  // Rate limit
-  const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || "unknown";
-  if (!checkRateLimit(ip)) {
-    res.writeHead(429, { "content-type": "application/json" });
-    res.end(JSON.stringify({ success: false, error: "Too many requests. Please try again later." }));
-    return;
-  }
-
   // Parse body
   let body: Record<string, unknown>;
   try {
-    if (typeof req.body === "string") {
-      body = JSON.parse(req.body);
-    } else if (req.body && typeof req.body === "object") {
-      body = req.body as Record<string, unknown>;
-    } else {
-      const chunks: Buffer[] = [];
-      for await (const chunk of req) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-      body = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+    body = await readJsonBody(req, SMALL_REQUEST_BODY_LIMIT_BYTES);
+  } catch (error) {
+    if (isRequestBodyTooLarge(error)) {
+      writeRequestBodyTooLarge(res, error);
+      return;
     }
-  } catch {
-    res.writeHead(400, { "content-type": "application/json" });
-    res.end(JSON.stringify({ success: false, error: "Invalid JSON body" }));
+    if (isInvalidRequestBody(error)) {
+      res.writeHead(400, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+      res.end(JSON.stringify({ success: false, error: "Invalid JSON body" }));
+      return;
+    }
+    res.writeHead(503, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+    res.end(JSON.stringify({ success: false, error: "Hosted access is temporarily unavailable. Please try again later." }));
     return;
   }
 
@@ -307,40 +358,57 @@ export default async function handler(
     return;
   }
 
+  if (name.length > 120 || tool.length > 80 || useCase.length > 2_000) {
+    res.writeHead(400, { "content-type": "application/json; charset=utf-8" });
+    res.end(JSON.stringify({ success: false, error: "One or more fields are too long" }));
+    return;
+  }
+
+  if (!checkAccessRateLimit(req, email, process.env)) {
+    res.writeHead(429, {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+      "retry-after": String(RATE_LIMIT_WINDOW_MS / 1000),
+    });
+    res.end(JSON.stringify({ success: false, error: "Too many requests. Please try again later." }));
+    return;
+  }
+
   // Generate token
   let token: string;
   try {
-    token = makeToken(process.env);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : "Unknown error";
-    res.writeHead(500, { "content-type": "application/json" });
-    res.end(JSON.stringify({ success: false, error: `Server configuration error: ${msg}` }));
+    token = createSignedAccessToken(process.env);
+  } catch {
+    res.writeHead(503, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+    res.end(JSON.stringify({ success: false, error: "Hosted access is temporarily unavailable. Please try again later." }));
     return;
   }
 
   // Send email
   const subject = "Your Education Agent Skills hosted MCP access";
-  const emailBody = buildEmailBody(name, tool, token);
+  const emailBody = buildEmailBody(name, tool, token, `${baseUrl}/mcp`);
   const result = await sendEmailViaResend(email, subject, emailBody, process.env);
 
   if (!result.success) {
-    // DEBUG: temporarily expose the error
-    console.error(`[request-access] Email send failed for ${email}: ${result.error}`);
-    res.writeHead(200, { "content-type": "application/json" });
-    res.end(JSON.stringify({
-      success: true,
-      token_prefix: tokenPrefix(token),
-      warning: "Token generated but email delivery may be delayed.",
-      _debug_error: result.error,
-    }));
+    console.error("[request-access] Access email delivery failed");
+    res.writeHead(502, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+    res.end(JSON.stringify({ success: false, error: "Unable to send the access email. Please try again later." }));
     return;
   }
 
-  console.log(`[request-access] Token issued for ${email} (prefix: ${tokenPrefix(token)}, resend_id: ${result.id})`);
+  console.log("[request-access] Access email accepted by provider");
+  res.writeHead(200, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+  res.end(JSON.stringify({ success: true }));
+}
 
-  res.writeHead(200, { "content-type": "application/json" });
-  res.end(JSON.stringify({
-    success: true,
-    token_prefix: tokenPrefix(token),
-  }));
+function isTrustedRequestOrigin(req: IncomingMessage, baseUrl: string): boolean {
+  const fetchSite = headerValue(req.headers["sec-fetch-site"]);
+  if (fetchSite === "cross-site") return false;
+  const origin = headerValue(req.headers.origin);
+  if (!origin) return true;
+  try {
+    return new URL(origin).origin === baseUrl;
+  } catch {
+    return false;
+  }
 }

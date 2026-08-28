@@ -1,22 +1,53 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
+import type { ServerResponse } from "node:http";
 import { dynamicClientRegistrationResponse, publicBaseUrl } from "../../src/oauth.js";
+import {
+  isInvalidRequestBody,
+  isRequestBodyTooLarge,
+  readJsonBody,
+  SMALL_REQUEST_BODY_LIMIT_BYTES,
+  writeRequestBodyTooLarge,
+  type RequestWithBody,
+} from "../../src/request-body.js";
 
-async function readJson(req: IncomingMessage & { body?: unknown }): Promise<Record<string, unknown>> {
-  if (req.body && typeof req.body === "object") return req.body as Record<string, unknown>;
-  const chunks: Buffer[] = [];
-  for await (const chunk of req) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-  const raw = Buffer.concat(chunks).toString("utf8");
-  if (!raw.trim()) return {};
-  try { return JSON.parse(raw) as Record<string, unknown>; } catch { return {}; }
-}
-
-export default async function handler(req: IncomingMessage & { body?: unknown; headers: Record<string, string | string[] | undefined> }, res: ServerResponse) {
+export default async function handler(req: RequestWithBody, res: ServerResponse) {
+  res.setHeader("cache-control", "no-store");
   if (req.method !== "POST") {
     res.writeHead(405, { allow: "POST" });
     res.end("Method not allowed");
     return;
   }
-  const body = await readJson(req);
-  res.writeHead(201, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
-  res.end(JSON.stringify(dynamicClientRegistrationResponse(publicBaseUrl(req), body)));
+
+  try {
+    const baseUrl = publicBaseUrl(req);
+    const body = await readJsonBody(req, SMALL_REQUEST_BODY_LIMIT_BYTES);
+    const registration = dynamicClientRegistrationResponse(baseUrl, body);
+    res.writeHead(201, {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+    });
+    res.end(JSON.stringify(registration));
+  } catch (error) {
+    if (isRequestBodyTooLarge(error)) {
+      writeRequestBodyTooLarge(res, error);
+      return;
+    }
+    if (isInvalidRequestBody(error)) {
+      writeJson(res, 400, { error: "invalid_client_metadata" });
+      return;
+    }
+    const message = error instanceof Error ? error.message : "";
+    if (/redirect_uris|redirect URI/.test(message)) {
+      writeJson(res, 400, { error: "invalid_redirect_uri" });
+      return;
+    }
+    writeJson(res, 503, { error: "hosted_mcp_unavailable" });
+  }
+}
+
+function writeJson(res: ServerResponse, status: number, body: Record<string, unknown>): void {
+  res.writeHead(status, {
+    "content-type": "application/json; charset=utf-8",
+    "cache-control": "no-store",
+  });
+  res.end(JSON.stringify(body));
 }

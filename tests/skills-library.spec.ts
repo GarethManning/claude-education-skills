@@ -7,6 +7,7 @@ const SKILLS_DIR = path.join(__dirname, "..", "skills");
 const REGISTRY_PATH = path.join(__dirname, "..", "registry.json");
 const PLUGIN_PATH = path.join(__dirname, "..", ".claude-plugin", "plugin.json");
 const CODEX_PLUGIN_PATH = path.join(__dirname, "..", ".codex-plugin", "plugin.json");
+const BUNDLED_SKILLS_PATH = path.join(__dirname, "..", "mcp-server", "src", "skills.json");
 
 // Helper: collect all SKILL.md paths
 function getAllSkillPaths(): string[] {
@@ -37,16 +38,16 @@ function parseFrontmatter(filePath: string): Record<string, unknown> {
 }
 
 test.describe("Skill Discovery", () => {
-  test("finds at least the published baseline of SKILL.md files", () => {
+  test("finds the complete published set of 165 SKILL.md files", () => {
     const paths = getAllSkillPaths();
-    expect(paths.length).toBeGreaterThanOrEqual(131);
+    expect(paths).toHaveLength(165);
   });
 
-  test("skills span at least the published baseline of domains", () => {
+  test("skills span the complete set of 20 domains", () => {
     const domains = fs.readdirSync(SKILLS_DIR).filter((d) =>
       fs.statSync(path.join(SKILLS_DIR, d)).isDirectory()
     );
-    expect(domains.length).toBeGreaterThanOrEqual(17);
+    expect(domains).toHaveLength(20);
   });
 
   test("every SKILL.md has valid YAML frontmatter", () => {
@@ -184,6 +185,19 @@ test.describe("Registry Validation", () => {
   });
 });
 
+test.describe("Bundled MCP invariants", () => {
+  test("keeps all 165 skills with non-empty prompts and the declared invocation flags", () => {
+    const bundled = JSON.parse(fs.readFileSync(BUNDLED_SKILLS_PATH, "utf-8")) as Array<{
+      prompt?: unknown;
+      metadata?: { "disable-model-invocation"?: unknown };
+    }>;
+
+    expect(bundled).toHaveLength(165);
+    expect(bundled.every((skill) => typeof skill.prompt === "string" && skill.prompt.trim().length > 0)).toBe(true);
+    expect(bundled.filter((skill) => skill.metadata?.["disable-model-invocation"] === true)).toHaveLength(12);
+  });
+});
+
 test.describe("Plugin Manifest Validation", () => {
   let plugin: {
     name: string;
@@ -238,6 +252,11 @@ test.describe("Plugin Manifest Validation", () => {
 });
 
 test.describe("Hosted MCP access control", () => {
+  test.skip(
+    !process.env.HOSTED_MCP_BASE_URL,
+    "Set HOSTED_MCP_BASE_URL to run the production smoke test",
+  );
+
   test("anonymous MCP requests fail fast with a token-required response", async ({ request }) => {
     const response = await request.post("/mcp", {
       headers: {
